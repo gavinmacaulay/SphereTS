@@ -33,7 +33,7 @@ class uiHandler(Handler):
 
         f, TS = sphereTSFreqResponse(**params)
                                      
-        plt.clf()
+        plt.figure()
         plt.plot(f/1e3, TS)
         plt.xlabel('Frequency (kHz)')
         plt.ylabel('TS (dB re 1 m$^2$)')
@@ -45,10 +45,25 @@ class uiHandler(Handler):
         del params['fstop']
         del params['fstep']
         # Merge the two spot frequency lists, then convert to a set to keep
-        # just the unique values.
-        for f in set(info.object.spot_freqs+info.object.extra_spot_freqs):
+        # just the unique values, then back to a list for sorting
+        freqs = list(set(info.object.spot_freqs+info.object.extra_spot_freqs))
+        freqs.sort()
+
+        spot_TS_text = '  f (kHz)     TS (dB)'
+        for f in freqs:
             TS = sphereTS(f*1000, **params)
             plt.plot(f, TS, 'o')
+            spot_TS_text = spot_TS_text + '\n  {:>8g}     {:>8.1f}'.format(f, TS)
+        
+        ax = plt.gca()
+        ylim = ax.get_ylim()
+        xlim = ax.get_xlim()
+        text_x_pos = (xlim[1] - xlim[0])*0.05 + xlim[0]
+        text_y_pos = (ylim[1] - ylim[0])*0.05 + ylim[0]
+        if len(freqs) > 0:
+            plt.text(text_x_pos, text_y_pos, spot_TS_text, verticalalignment='bottom',
+                     horizontalalignment='left',
+                     bbox=dict(facecolor=(.7, .7, .7), alpha=0.5, edgecolor='None'))
         plt.show()
     
     def object_sphere_material_changed(self, info):
@@ -81,7 +96,11 @@ class uiHandler(Handler):
     def object_use_ctd_changed(self, info):
         if info.object.use_ctd:
             self.updateFluidProperties(info)
-
+            
+    def close(self, info, is_ok):
+        plt.close('all')
+        return True
+        
 # TODO
 # when the sphere properties are changed, deselect the selected material properties and change the plot title
 #
