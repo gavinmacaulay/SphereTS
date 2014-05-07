@@ -10,6 +10,9 @@ from __future__ import division
 from sphereTS import calcWaterProperties, materialProperties, sphereTS, sphereTSFreqResponse
 
 import matplotlib.pyplot as plt
+import math
+
+import numpy as np
 
 from traits.api import HasTraits, Str, Float, List, Bool
 from traitsui.api import View, Item, Group, Handler, CheckListEditor, CSVListEditor, EnumEditor
@@ -20,10 +23,22 @@ class uiHandler(Handler):
     """
     def calculate(self, info):
 
-        half_bw = info.object.averaging_bandwidth/2.0
-        params = {'fstart': (info.object.freq_start-half_bw)*1e3,
-                  'fstop': (info.object.freq_end+half_bw)*1e3,
-                  'fstep': info.object.freq_step*1e3,
+        fstart = info.object.freq_start*1e3 # [Hz]
+        fstop = info.object.freq_end*1e3 # [Hz]
+        bw = info.object.averaging_bandwidth*1e3 # [Hz]
+        
+        # Sort out the frequency step size for the TS calculations
+        Ns = 10 # minimum number of sampes per bandwidth
+        max_evaluations = 10000.0 # don't do more than this many sphere TS calculations (takes too long)
+
+        fstep = min(bw/Ns, 1e3)
+
+        if (fstop-fstart)/fstep > max_evaluations:
+            fstep = (fstop-fstart)/max_evaluations
+        
+        params = {'fstart': (fstart-bw),
+                  'fstop': (fstop+bw),
+                  'fstep': fstep,
                   'a': info.object.sphere_diameter/2000.0,
                   'rho1': info.object.sphere_density,
                   'c1': info.object.sphere_c1,
@@ -32,14 +47,27 @@ class uiHandler(Handler):
                   'rho': info.object.fluid_density}
 
         f, TS = sphereTSFreqResponse(**params)
+
+        # Do a running mean of length N.
+        N = round(bw/fstep)
+        #### NEED TO DO this in the linear domain
+        TS_avg = np.convolve(TS, np.ones((N,))/N, mode='same')
+        # Since we added a little to the frequency range above to give valid
+        # averaging out to the supplied frequency limits, we now trim the data
+        # back to the requested limits
+        N = math.floor(N/2.0)
+        f = f[N:-N]
+        TS = TS[N:-N]
+        TS_avg = TS_avg[N:-N]
                        
-        #fsubset = f[f>=info.object.freq_start*1e3 && f<=info.object.freq_end*1e3]
-        #TSsubset = TS[f>=info.object.freq_start*1e3 && f<=info.object.freq_end*1e3]
         plt.figure()
         plt.plot(f/1e3, TS)
+        plt.plot(f/1e3, TS_avg)
         plt.xlabel('Frequency (kHz)')
         plt.ylabel('TS (dB re 1 m$^2$)')
         plt.grid()
+        plt.xlim(fstart/1e3, fstop/1e3)
+        plt.legend(('Unaveraged TS', 'Averaged TS'), loc='lower right', fancybox=True)
 
         if info.object.use_user_material:
             title_text = 'User defined sphere, {} mm'.format(params['a']*2000)
@@ -74,8 +102,8 @@ class uiHandler(Handler):
                      verticalalignment='bottom',
                      horizontalalignment='left',
                      bbox=dict(boxstyle='round,pad=0.5', 
-                               facecolor=(.7, .7, .7), 
-                               alpha=0.5, edgecolor='None'))
+                               facecolor='w', 
+                               edgecolor='k'))
         plt.show()
     
     def object_sphere_material_changed(self, info):
@@ -181,7 +209,6 @@ class sphereTSGUI(HasTraits):
 
     freq_start = Float(12., label='Start frequency [kHz]')
     freq_end = Float(200., label='End frequency [kHz]')
-    freq_step = Float(1, label='Step frequency [kHz]')
     
     averaging_bandwidth = Float(2.5, 
                                 label='Bandwidth for averaged TS [kHz]')
@@ -215,7 +242,6 @@ class sphereTSGUI(HasTraits):
                         Item('extra_spot_freqs', editor=CSVListEditor()),
                         Item('freq_start'),
                         Item('freq_end'),
-                        Item('freq_step'),
                         Item('averaging_bandwidth'),
                         label='Frequencies', show_border=True)),
             resizable=True, 
