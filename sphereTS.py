@@ -5,14 +5,13 @@ Created on Thu May 01 14:12:05 2014
 @author: gavinj
 """
 from __future__ import division
+
 import math
 import cmath
+
 from scipy import special
-
 import numpy as np
-
 import gsw
-
 
 def sphereTS(f, a, c, c1, c2, rho, rho1):
     """
@@ -140,9 +139,15 @@ def sphereTSFreqResponse(fstart, fstop, a, c, c1, c2, rho, rho1, fstep=100):
         
     return f,TS
     
-def materialProperties(): # make it optionally accept 1 argument, the material...
+def materialProperties():
     """
+    Provides sound speed and density values for selected sphere materials.
     
+    Returns:
+        A dictionary with keys containing the material name, and values being 
+        another dictionary with keys 'rho1', 'c1', and 'c2' corresponding to
+        density, transveral sound speed, and longitudinal sound speed 
+        respectively. Units are kg/m^3, m/s, and m/s respectively.
     """
     
     return {'Tungsten carbide': {'c1': 6853.0, 'c2': 4171.0, 'rho1': 14900.0},
@@ -152,7 +157,7 @@ def materialProperties(): # make it optionally accept 1 argument, the material..
 
 def calcWaterProperties(SP, t, p):
     """
-    Calculates seawater denisty and sound speed using the TEOS-10 equations.
+    Calculates seawater density and sound speed using the TEOS-10 equations.
     
     Uses the gsw toolbox, which is a wrapper around the C-based TEOS-10 library.
     
@@ -173,14 +178,4 @@ def calcWaterProperties(SP, t, p):
     rho = gsw.rho(SR, CT, p)
     
     return c, rho
-
-    
-def bulkSphereTS():
-    """
-    Calculate the sphere TS over given variation in input parameters
-    """
-    
-    pass
-
-
 
