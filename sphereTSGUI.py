@@ -21,14 +21,32 @@ from traitsui.menu import Action, CancelButton, OKButton
 class AboutDialog(HasTraits):
     about_text = Str("""
     <h2>Sphere TS calculator</h2>
-    <p>This program calculates the acoustic TS of calibration spheres.</p>
+    <p>This program calculates the TS of acoustic calibration spheres.</p>
     
-    <h3>Purpose</h3>    
+    <p>Developed by Gavin Macaulay.</p>
+    
+    <h3>Instructions</h3>
+    <li>Set the appropriate sphere and environmental properties
+    <li>Choose the desired requencies and frequency sweep limits
+    <li>Click on the <b>Calculate</b> button to produce a plot of the TS values
     
     <h3>Methods</h3>
+    <p>Equations 6-9 of MacLennan (1981) are used to calculate the TS between
+    the given start and stop frequencies. An averaged 
+    TS is also calculated via a linear mean over the frequencies within
+    the given bandwidth.</p>
     
+    <p>In addition the bandwidth averaged TS at spot frequencies is calculated. 
+    This is done independently of the frequency sweep.
+    
+    <h3>Acknowledgements</h3>
+    The style and functioning of this program closely follows the Matlab code 
+    developed by Dezchang Chu, NOAA.
     
     <h3>References</h3>
+    <p>MacLennan, D.N., 1981. The Theory of Solid Spheres 
+        as Sonar Calibration Targets. Scottish Fisheries Research 
+        Report No. 22, Department of Agriculture and Fisheries for Scotland.</p> 
     """)
     view = View(Item('about_text', editor=HTMLEditor(), show_label=False),
                 resizable=True, title='About',
