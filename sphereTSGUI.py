@@ -7,7 +7,7 @@ Created on Tue May 06 11:09:21 2014
 
 from __future__ import division
 
-from sphereTS import calcWaterProperties, materialProperties, sphereTS, sphereTSFreqResponse
+from sphereTS import calcWaterProperties, materialProperties, sphereTSFreqResponse
 
 import matplotlib.pyplot as plt
 import math
@@ -15,12 +15,31 @@ import math
 import numpy as np
 
 from traits.api import HasTraits, Str, Float, List, Bool
-from traitsui.api import View, Item, Group, Handler, CheckListEditor, CSVListEditor, EnumEditor
-from traitsui.menu import Action, CancelButton, HelpButton
+from traitsui.api import View, Item, Group, Handler, CheckListEditor, CSVListEditor, EnumEditor, HTMLEditor
+from traitsui.menu import Action, CancelButton, OKButton
+
+class AboutDialog(HasTraits):
+    about_text = Str("""
+    <h2>Sphere TS calculator</h2>
+    <p>This program calculates the acoustic TS of calibration spheres.</p>
+    
+    <h3>Purpose</h3>    
+    
+    <h3>Methods</h3>
+    
+    
+    <h3>References</h3>
+    """)
+    view = View(Item('about_text', editor=HTMLEditor(), show_label=False),
+                resizable=True, title='About',
+                buttons=[OKButton])
 
 class uiHandler(Handler):
     """
     """
+    def showAbout(self, info):
+        info.object.aboutDialog.edit_traits()
+    
     def calculate(self, info):
 
         fstart = info.object.freq_start*1e3 # [Hz]
@@ -51,8 +70,9 @@ class uiHandler(Handler):
         # Do a running mean of length N.
         N = round(bw/fstep)
         #### NEED TO DO this in the linear domain
-        TS_avg = np.convolve(TS, np.ones((N,))/N, mode='same')
-        # Since we added a little to the frequency range above to give valid
+        TS_avg = 10*np.log10(np.convolve(np.power(10.0, TS/10.0), np.ones((N,))/N, mode='same'))
+        
+        # Since we added a little to the frequency range above, to give valid
         # averaging out to the supplied frequency limits, we now trim the data
         # back to the requested limits
         N = math.floor(N/2.0)
@@ -61,15 +81,16 @@ class uiHandler(Handler):
         TS_avg = TS_avg[N:-N]
                        
         plt.figure()
-        plt.plot(f/1e3, TS)
-        plt.plot(f/1e3, TS_avg)
+        plt.plot(f/1e3, TS, linewidth=1.5)
+        plt.plot(f/1e3, TS_avg, linewidth=1.5)
         plt.xlabel('Frequency (kHz)')
         plt.ylabel('TS (dB re 1 m$^2$)')
-        plt.grid()
         plt.xlim(fstart/1e3, fstop/1e3)
-        plt.legend(('Unaveraged TS', 'Averaged TS'), loc='lower right', fancybox=True)
+        plt.grid()
+        plt.legend(('Unaveraged TS', 'Averaged TS'), loc='lower right', 
+                   fancybox=True, fontsize=12)
 
-        if info.object.use_user_material:
+        if info.object.use_another_material:
             title_text = 'User defined sphere, {} mm'.format(params['a']*2000)
         else:
             title_text = '{} sphere, {} mm'.format(info.object.sphere_material, 
@@ -78,26 +99,34 @@ class uiHandler(Handler):
         plt.title(title_text)
         
         # Then do the spot frequencies
-        del params['fstart']
-        del params['fstop']
-        del params['fstep']
+
         # Merge the two spot frequency lists, then convert to a set to keep
         # just the unique values, then back to a list for sorting
         freqs = list(set(info.object.spot_freqs+info.object.extra_spot_freqs))
         freqs.sort()
 
-        spot_TS_text = 'f (kHz)     TS (dB)'
+        # NEED to do a set of freqs around each spot freq and then calculate 
+        # and show the average TS.
+        spot_TS_text = 'f (kHz)     Avg. TS (dB)'
         for f in freqs:
-            TS = sphereTS(f*1000, **params)
-            plt.plot(f, TS, 'o')
-            spot_TS_text = spot_TS_text + '\n{:>8g}     {:>8.1f}'.format(f, TS)
+            params['fstart'] = (f*1e3-bw/2)
+            params['fstop'] = (f*1e3+bw/2)
+            params['fstep'] = bw/20
+            
+            ff, TS = sphereTSFreqResponse(**params)
+            avgTS = 10.0*np.log10(np.average(np.power(10.0, TS/10.0)))
+            
+            plt.plot(f, avgTS, 'o')
+            spot_TS_text = spot_TS_text + '\n{:>8g}     {:>8.1f}'.format(f, avgTS)
         
-        ax = plt.gca()
-        ylim = ax.get_ylim()
-        xlim = ax.get_xlim()
-        text_x_pos = (xlim[1] - xlim[0])*0.05 + xlim[0]
-        text_y_pos = (ylim[1] - ylim[0])*0.05 + ylim[0]
+        # Put a table of freq and TS values on the plot
         if len(freqs) > 0:
+            ax = plt.gca()
+            ylim = ax.get_ylim()
+            xlim = ax.get_xlim()
+            text_x_pos = (xlim[1] - xlim[0])*0.05 + xlim[0]
+            text_y_pos = (ylim[1] - ylim[0])*0.05 + ylim[0]
+
             plt.text(text_x_pos, text_y_pos, spot_TS_text, 
                      verticalalignment='bottom',
                      horizontalalignment='left',
@@ -138,6 +167,12 @@ class uiHandler(Handler):
         if info.object.use_ctd:
             self.updateFluidProperties(info)
             
+    def object_use_another_material_changed(self, info):
+        # when we switch back to specific material, make sure
+        # to reset the displayed material properties
+        if not info.object.use_another_material:
+            self.object_sphere_material_changed(info)
+                
     def close(self, info, is_ok):
         plt.close('all')
         return True
@@ -146,17 +181,15 @@ class uiHandler(Handler):
 #
 # Limits on the input water temp, salinity, and depth numbers to sensible values
 #
-# Implement TS averaging over a bandwidth
-#
 # Implement the help text
+#
+# Implement the averaging as defined in MacLennans's report, rather than a simple mean
 #
 # Tidy up the class/function structure
 #
 # Package as a windows executable
 #
 # Profile the code to speed up the TS calculations
-#
-# Add a waiting cursor when doing the calculations
 
 class sphereTSGUI(HasTraits):
     """
@@ -194,7 +227,7 @@ class sphereTSGUI(HasTraits):
                       label='Transverse sound speed [m/s]')
 
     use_ctd = Bool(True)
-    use_user_material = Bool(False)
+    use_another_material = Bool(False)
     
     fluid_c = Float(params['c'],
                     desc='Sound speed in water [m/s]',
@@ -213,17 +246,20 @@ class sphereTSGUI(HasTraits):
     averaging_bandwidth = Float(2.5, 
                                 label='Bandwidth for averaged TS [kHz]')
 
-    CalculateButton = Action(name = 'Calculate', action = 'calculate')    
+    CalculateButton = Action(name = 'Calculate', action = 'calculate')   
+    AboutButton = Action(name = 'About', action = 'showAbout')
+
+    aboutDialog = AboutDialog()
 
     view = View(Group(Group(
                         Item('sphere_diameter'),
                         Item('sphere_material', style='custom', 
-                             enabled_when = 'not use_user_material',
+                             enabled_when = 'not use_another_material',
                              editor=EnumEditor(values=m.keys(), cols=2)), 
-                        Item('use_user_material', label='Another material'),
-                        Item('sphere_density', enabled_when = 'use_user_material'),
-                        Item('sphere_c1', enabled_when = 'use_user_material'),
-                        Item('sphere_c2', enabled_when = 'use_user_material'), 
+                        Item('use_another_material', label='Another material'),
+                        Item('sphere_density', enabled_when = 'use_another_material'),
+                        Item('sphere_c1', enabled_when = 'use_another_material'),
+                        Item('sphere_c2', enabled_when = 'use_another_material'), 
                         label='Sphere properties', show_border=True),
                         '10', # some extra space
                       Group(
@@ -246,8 +282,10 @@ class sphereTSGUI(HasTraits):
                         label='Frequencies', show_border=True)),
             resizable=True, 
             title='Sphere TS calculator',
-            buttons = [CalculateButton, CancelButton, HelpButton],
+            buttons = [AboutButton, CalculateButton, CancelButton],
             handler = uiHandler())
 
-ts = sphereTSGUI()
-ts.configure_traits()
+
+if __name__ == "__main__":
+    ts = sphereTSGUI()
+    ts.configure_traits()
