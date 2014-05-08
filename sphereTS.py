@@ -65,6 +65,10 @@ def sphereTS(f, a, c, c1, c2, rho, rho1):
     form = 0.0
     tol = 1e-10
     pi2 = math.pi / 2.0
+    # precalculate some things
+    sqrpi2q = math.sqrt(pi2/q)
+    sqrpi2q1 = math.sqrt(pi2/q1)
+    sqrpi2q2 = math.sqrt(pi2/q2)
     
     for l in range(0, 50):
         # The relationship for the derivatives of the bessel
@@ -73,20 +77,20 @@ def sphereTS(f, a, c, c1, c2, rho, rho1):
         # Monostatic Reflection of Acoustic Waves by Elastic 
         # Spheres. NRL Report 6551, Acoustic Research Branch, 
         # Sound Division, Naval Research Laboratory.
-        j_q =    special.jv(l+0.5, q) * math.sqrt(pi2/q)
-        jm1_q =  special.jv(l-0.5, q) * math.sqrt(pi2/q)
+        j_q =    special.jv(l+0.5, q) * sqrpi2q
+        jm1_q =  special.jv(l-0.5, q) * sqrpi2q
         j_qd =   jm1_q - (l+1) / q * j_q
-        j_q1 =   special.jv(l+0.5, q1) * math.sqrt(pi2/q1)
-        jm1_q1 = special.jv(l-0.5, q1) * math.sqrt(pi2/q1)
+        j_q1 =   special.jv(l+0.5, q1) * sqrpi2q1
+        jm1_q1 = special.jv(l-0.5, q1) * sqrpi2q1
         j_q1d =  jm1_q1 - (l+1) / q1 * j_q1
         j_q1dd = 1 / (q1**2) * ((l+1)*(l+2) - q1**2) * j_q1 - 2.0 / q1 * jm1_q1
-        j_q2 =   special.jv(l+0.5, q2) * math.sqrt(pi2/q2)
-        jm1_q2 = special.jv(l-0.5, q2) * math.sqrt(pi2/q2)
+        j_q2 =   special.jv(l+0.5, q2) * sqrpi2q2
+        jm1_q2 = special.jv(l-0.5, q2) * sqrpi2q2
         j_q2d =  jm1_q2 - (l+1) / q2 * j_q2
         j_q2dd = 1 / (q2**2) * ((l+1)*(l+2) - q2**2) * j_q2 - 2.0 / q2 * jm1_q2
        
-        y_q =   special.yv(l+0.5, q) * math.sqrt(pi2/q)
-        yp1_q = special.yv(l+1.5, q) * math.sqrt(pi2/q)
+        y_q =   special.yv(l+0.5, q) * sqrpi2q
+        yp1_q = special.yv(l+1.5, q) * sqrpi2q
         y_qd = l / q * y_q - yp1_q
        
         A2 = (l**2 + l-2.0)*j_q2 + (q2**2)*j_q2dd
@@ -98,7 +102,7 @@ def sphereTS(f, a, c, c1, c2, rho, rho1):
         newterm = (-1.0)**l * (2.0*l+1) * cmath.sin(neta) * cmath.exp(1j * neta)
         
         form = form + newterm
-        if abs(newterm)/abs(form) < tol:
+        if abs(newterm/form) < tol:
             break
     
     form = -2.0/q*form
