@@ -87,7 +87,6 @@ class uiHandler(Handler):
 
         # Do a running mean of length N.
         N = round(bw/fstep)
-        #### NEED TO DO this in the linear domain
         TS_avg = 10*np.log10(np.convolve(np.power(10.0, TS/10.0), np.ones((N,))/N, mode='same'))
         
         # Since we added a little to the frequency range above, to give valid
@@ -146,11 +145,9 @@ class uiHandler(Handler):
             text_y_pos = (ylim[1] - ylim[0])*0.05 + ylim[0]
 
             plt.text(text_x_pos, text_y_pos, spot_TS_text, 
-                     verticalalignment='bottom',
-                     horizontalalignment='left',
+                     verticalalignment='bottom', horizontalalignment='left',
                      bbox=dict(boxstyle='round,pad=0.5', 
-                               facecolor='w', 
-                               edgecolor='k'))
+                               facecolor='w', edgecolor='k'))
         plt.draw()
     
     def object_sphere_material_changed(self, info):
@@ -195,19 +192,11 @@ class uiHandler(Handler):
         plt.close('all')
         return True
         
-# TODO
-#
-# Limits on the input water temp, salinity, and depth numbers to sensible values
-#
-# Implement the help text
-#
-# Implement the averaging as defined in MacLennans's report, rather than a simple mean
+# FIXME:
 #
 # Tidy up the class/function structure
 #
 # Package as a windows executable
-#
-# Profile the code to speed up the TS calculations
 
 class sphereTSGUI(HasTraits):
     """
@@ -222,37 +211,23 @@ class sphereTSGUI(HasTraits):
     params['rho'] = 1026.2
     params['c'] = 1490.0
     
-    # Find a more clever way to do this...
-    spot_freqs = [(12.0, '12'), (18.0, '18'), (38.0, '38'), (50.0, '50'), 
-                   (70.0, '70'), (120.0, '120'), (200.0, '200'),
-                   (333.0, '333'), (420.0, '420')]
+    spot_freqs = [12, 18, 38, 50, 70, 120, 200, 333, 420]
+    spot_freqs = zip(spot_freqs, map(str, spot_freqs))
                    
     extra_spot_freqs = List(Float,desc='comma separated frequencies [kHz]',
                             label='Additional spot freqs [kHz]')
     
     sphere_material = Str(params['material'], label='Material')
-    sphere_diameter = Float(params['a']*2*1000, 
-                            desc='sphere diameter [mm]',
-                            label='Diameter [mm]')
-    sphere_density = Float(params['rho1'], 
-                           desc='sphere material density [kg/m^3]',
-                           label='Density [kg/m^3]')
-    sphere_c1 = Float(params['c1'], 
-                      desc='longitudinal sound speed of the sphere material [m/s]',
-                      label='Longitudal sound speed [m/s]')
-    sphere_c2 = Float(params['c2'], 
-                      desc='transverse sound speed of the sphere material [m/s]',
-                      label='Transverse sound speed [m/s]')
+    sphere_diameter = Float(params['a']*2*1000, label='Diameter [mm]')
+    sphere_density = Float(params['rho1'], label='Density [kg/m^3]')
+    sphere_c1 = Float(params['c1'], label='Longitudal sound speed [m/s]')
+    sphere_c2 = Float(params['c2'], label='Transverse sound speed [m/s]')
 
     use_ctd = Bool(True)
-    use_another_material = Bool(False)
+    use_another_material = Bool(False, label='Another material')
     
-    fluid_c = Float(params['c'],
-                    desc='Sound speed in water [m/s]',
-                    label='Sound speed in water [m/s]')
-    fluid_density = Float(params['rho'],
-                           desc='Density of water [kg/m^3]',
-                           label='Density of water [kg/m^3]')
+    fluid_c = Float(params['c'], label='Sound speed in water [m/s]')
+    fluid_density = Float(params['rho'], label='Density of water [kg/m^3]')
     
     fluid_temperature = Float(10.0, label='Temperature [degC]')
     fluid_salinity = Float(35.0, label='Salinity [PSU]')
@@ -261,32 +236,31 @@ class sphereTSGUI(HasTraits):
     freq_start = Float(12., label='Start frequency [kHz]')
     freq_end = Float(200., label='End frequency [kHz]')
     
-    averaging_bandwidth = Float(2.5, 
-                                label='Bandwidth for averaged TS [kHz]')
+    averaging_bandwidth = Float(2.5, label='Bandwidth for averaged TS [kHz]')
 
-    CalculateButton = Action(name = 'Calculate', action = 'calculate')   
-    AboutButton = Action(name = 'About', action = 'showAbout')
+    CalculateButton = Action(name='Calculate', action='calculate')   
+    AboutButton = Action(name='About', action='showAbout')
 
     aboutDialog = AboutDialog()
 
     view = View(Group(Group(
                         Item('sphere_diameter'),
                         Item('sphere_material', style='custom', 
-                             enabled_when = 'not use_another_material',
+                             enabled_when='not use_another_material',
                              editor=EnumEditor(values=m.keys(), cols=2)), 
-                        Item('use_another_material', label='Another material'),
-                        Item('sphere_density', enabled_when = 'use_another_material'),
-                        Item('sphere_c1', enabled_when = 'use_another_material'),
-                        Item('sphere_c2', enabled_when = 'use_another_material'), 
+                        Item('use_another_material'),
+                        Item('sphere_density', enabled_when='use_another_material'),
+                        Item('sphere_c1', enabled_when='use_another_material'),
+                        Item('sphere_c2', enabled_when='use_another_material'), 
                         label='Sphere properties', show_border=True),
                         '10', # some extra space
                       Group(
                         Item('use_ctd', label='Calculate from T, S, and D'),
-                        Item('fluid_temperature', enabled_when = 'use_ctd'),
-                        Item('fluid_salinity', enabled_when = 'use_ctd'),
-                        Item('fluid_depth', enabled_when = 'use_ctd'),
-                        Item('fluid_c', enabled_when = 'not use_ctd', format_str='%.2f'),
-                        Item('fluid_density', enabled_when = 'not use_ctd',format_str='%.2f'),
+                        Item('fluid_temperature', enabled_when='use_ctd'),
+                        Item('fluid_salinity', enabled_when='use_ctd'),
+                        Item('fluid_depth', enabled_when='use_ctd'),
+                        Item('fluid_c', enabled_when='not use_ctd', format_str='%.2f'),
+                        Item('fluid_density', enabled_when='not use_ctd',format_str='%.2f'),
                         label='Environmental properties', show_border=True),
                         '10', # some extra space
                       Group(
