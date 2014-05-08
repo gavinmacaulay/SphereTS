@@ -105,8 +105,7 @@ class uiHandler(Handler):
         freqs = list(set(info.object.spot_freqs+info.object.extra_spot_freqs))
         freqs.sort()
 
-        # NEED to do a set of freqs around each spot freq and then calculate 
-        # and show the average TS.
+        # Calculate a set of TS around each spot frequency and then average
         spot_TS_text = 'f (kHz)     Avg. TS (dB)'
         for f in freqs:
             params['fstart'] = (f*1e3-bw/2)
@@ -133,7 +132,7 @@ class uiHandler(Handler):
                      bbox=dict(boxstyle='round,pad=0.5', 
                                facecolor='w', 
                                edgecolor='k'))
-        plt.show()
+        plt.draw()
     
     def object_sphere_material_changed(self, info):
         """
