@@ -79,7 +79,8 @@ class uiHandler(Handler):
         f = f[N:-N]
         TS = TS[N:-N]
         TS_avg = TS_avg[N:-N]
-                       
+                  
+        plt.ion()
         plt.figure()
         plt.plot(f/1e3, TS, linewidth=1.5)
         plt.plot(f/1e3, TS_avg, linewidth=1.5)
