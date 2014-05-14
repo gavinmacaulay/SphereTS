@@ -99,6 +99,7 @@ class uiHandler(Handler):
                   
         plt.ion()
         plt.figure()
+        plt.gca().set_position((.1, .15, .8, .75))
         plt.plot(f/1e3, TS, linewidth=1.5)
         plt.plot(f/1e3, TS_avg, linewidth=1.5)
         plt.xlabel('Frequency (kHz)')
@@ -148,6 +149,12 @@ class uiHandler(Handler):
                      verticalalignment='bottom', horizontalalignment='left',
                      bbox=dict(boxstyle='round,pad=0.5', 
                                facecolor='w', edgecolor='k'))
+                    
+        # Put the material properties on the plot too.
+        material_text = '$\\rho = {:.1f} \/ kg/m^3$, $c = {:.1f} \/ m/s$, $rho_1 = {:.1f}$, $c_1 = {:.1f}$, $c_2 = {:.1f}$'\
+        .format(params['rho'], params['c'], params['rho1'], \
+                        params['c1'], params['c2'])
+        plt.figtext(0.02, 0.02, material_text)
         plt.draw()
     
     def object_sphere_material_changed(self, info):
@@ -259,8 +266,8 @@ class sphereTSGUI(HasTraits):
                         Item('fluid_temperature', enabled_when='use_ctd'),
                         Item('fluid_salinity', enabled_when='use_ctd'),
                         Item('fluid_depth', enabled_when='use_ctd'),
-                        Item('fluid_c', enabled_when='not use_ctd', format_str='%.2f'),
-                        Item('fluid_density', enabled_when='not use_ctd',format_str='%.2f'),
+                        Item('fluid_c', enabled_when='not use_ctd', format_str='%.1f'),
+                        Item('fluid_density', enabled_when='not use_ctd',format_str='%.1f'),
                         label='Environmental properties', show_border=True),
                         '10', # some extra space
                       Group(
