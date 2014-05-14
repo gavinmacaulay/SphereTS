@@ -1,33 +1,34 @@
 <h2>Sphere TS calculator</h2>
-<p>This program calculates the TS of acoustic calibration spheres.</p>
+<p>This program calculates the target strength (TS) of acoustic calibration spheres.</p>
     
 <p>Developed by Gavin Macaulay.</p>
     
 <h3>Instructions</h3>
 
-<li>Set the appropriate sphere and environmental properties
-<li>Choose the desired requencies and frequency sweep limits
-<li>Click on the <b>Calculate</b> button to produce a plot of the TS values
+<li>Set the appropriate sphere and environmental properties.
+<li>Choose the desired spot frequencies and frequency sweep limits.
+<li>Click on the <b>Calculate</b> button to produce a plot of the sphere TS.
     
 <h3>Methods</h3>
 
-<p>Equations 6-9 of MacLennan (1981) are used to calculate the TS between
+<p>The sphere target strength is calculated using equations 6-9 of MacLennan (1981) between
 the given start and stop frequencies. An averaged 
 TS is also calculated via a linear mean over the frequencies within
-the given bandwidth.</p>
+the given bandwidth. The frequency resolution is set automatically to give a smooth plot in a short computation time.</p>
     
-<p>In addition the bandwidth averaged TS at spot frequencies is calculated. 
-This is done independently of the frequency sweep.</p>
+<p>In addition, the bandwidth averaged TS at spot frequencies is calculated. 
+This is done independently of the frequency sweep calculation.</p>
     
 <p>When the <em>Calculate from T,S, and D</em> option is ticked, the water sound 
 speed and density are calculated using the <a href="http://www.teos-10.org">TEOS-10</a> formulation.</p>
    
 <h3>Acknowledgements</h3>
 
-The style and functioning of this program closely follows the Matlab code 
+The style and functioning of this program was modelled on the Matlab code 
 developed by Dezchang Chu, NOAA.
     
 <h3>References</h3>
+
 <p>MacLennan, D.N., 1981. The Theory of Solid Spheres 
    as Sonar Calibration Targets. Scottish Fisheries Research 
    Report No. 22, Department of Agriculture and Fisheries for Scotland.</p> 
