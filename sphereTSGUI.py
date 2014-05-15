@@ -133,9 +133,9 @@ class uiHandler(Handler):
                                facecolor='w', edgecolor='k'))
                     
         # Put the material properties on the plot too.
-        material_text = '$\\rho = {:.1f} \/ kg/m^3$, $c = {:.1f} \/ m/s$, $rho_1 = {:.1f}$, $c_1 = {:.1f}$, $c_2 = {:.1f}$'\
+        material_text = '$\\rho = {:.1f} \/ kg/m^3$, $c = {:.1f} \/ m/s$, $\\rho_1 = {:.1f}$, $c_1 = {:.1f}$, $c_2 = {:.1f}$, $bw = {:.2f} kHz$'\
         .format(params['rho'], params['c'], params['rho1'], \
-                        params['c1'], params['c2'])
+                        params['c1'], params['c2'], bw/1e3)
         plt.figtext(0.02, 0.02, material_text)
         plt.draw()
     
@@ -186,6 +186,12 @@ class uiHandler(Handler):
 # Tidy up the class/function structure
 #
 # Package as a windows executable
+#
+# Compare results to Chu's program
+#
+# Provide a bulk TS calculation function
+#
+# Put in bitbucket and as a package on PyPI
 
 class sphereTSGUI(HasTraits):
     """
