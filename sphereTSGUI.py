@@ -6,7 +6,7 @@ Created on Tue May 06 11:09:21 2014
 """
 
 from __future__ import division
-
+print('Starting')
 from sphereTS import calcWaterProperties, materialProperties, sphereTSFreqResponse
 
 import matplotlib.pyplot as plt
@@ -14,7 +14,7 @@ import math
 
 import numpy as np
 
-from traits.api import HasTraits, Str, Float, List, Bool
+from traits.api import HasTraits, Str, List, Bool, Range
 from traitsui.api import View, Item, Group, Handler, CheckListEditor, CSVListEditor, EnumEditor, HTMLEditor
 from traitsui.menu import Action, CancelButton, OKButton
 
@@ -55,7 +55,7 @@ class uiHandler(Handler):
         if (fstop-fstart)/fstep > max_evaluations:
             fstep = (fstop-fstart)/max_evaluations
         
-        params = {'fstart': (fstart-bw),
+        params = {'fstart': max(1.0, (fstart-bw)),
                   'fstop': (fstop+bw),
                   'fstep': fstep,
                   'a': info.object.sphere_diameter/2000.0,
@@ -113,11 +113,18 @@ class uiHandler(Handler):
             params['fstop'] = (f*1e3+bw/2)
             params['fstep'] = bw/20
             
+            average_truncated = False
+            if params['fstart'] < 0.0:
+                params['fstart'] = 1
+                average_truncated = True
+                
             ff, TS = sphereTSFreqResponse(**params)
             avgTS = 10.0*np.log10(np.average(np.power(10.0, TS/10.0)))
             
             plt.plot(f, avgTS, 'o')
             spot_TS_text = spot_TS_text + '\n{:>8g}     {:>8.1f}'.format(f, avgTS)
+            if average_truncated:
+                spot_TS_text = spot_TS_text + '*'
         
         # Put a table of freq and TS values on the plot
         if len(freqs) > 0:
@@ -192,6 +199,8 @@ class uiHandler(Handler):
 # Provide a bulk TS calculation function
 #
 # Put in bitbucket and as a package on PyPI
+#
+# Prevent entry of invalid parameters into the GUI (e.g., negative values, temperatures less than -2 degC, etc)
 
 class sphereTSGUI(HasTraits):
     """
@@ -209,29 +218,29 @@ class sphereTSGUI(HasTraits):
     spot_freqs = [12, 18, 38, 50, 70, 120, 200, 333, 420]
     spot_freqs = zip(spot_freqs, map(str, spot_freqs))
                    
-    extra_spot_freqs = List(Float,desc='comma separated frequencies [kHz]',
+    extra_spot_freqs = List(Range(low=0., exclude_low=True),desc='comma separated frequencies [kHz]',
                             label='Additional spot freqs [kHz]')
     
     sphere_material = Str(params['material'], label='Material')
-    sphere_diameter = Float(params['a']*2*1000, label='Diameter [mm]')
-    sphere_density = Float(params['rho1'], label='Density [kg/m^3]')
-    sphere_c1 = Float(params['c1'], label='Longitudal sound speed [m/s]')
-    sphere_c2 = Float(params['c2'], label='Transverse sound speed [m/s]')
+    sphere_diameter = Range(low=0., value=params['a']*2*1000.0, exclude_low=True, label='Diameter [mm]')
+    sphere_density = Range(low=0., value=params['rho1'], exclude_low=True, label='Density [kg/m^3]')
+    sphere_c1 = Range(low=0., value=params['c1'], exclude_low=True, label='Longitudal sound speed [m/s]')
+    sphere_c2 = Range(low=0., value=params['c2'], exclude_low=True, label='Transverse sound speed [m/s]')
 
     use_ctd = Bool(True)
     use_another_material = Bool(False, label='Another material')
     
-    fluid_c = Float(params['c'], label='Sound speed in water [m/s]')
-    fluid_density = Float(params['rho'], label='Density of water [kg/m^3]')
+    fluid_c = Range(low=0., value=params['c'], exclude_low=True, label='Sound speed in water [m/s]')
+    fluid_density = Range(low=0., value=params['rho'], exclude_low=True, label='Density of water [kg/m^3]')
     
-    fluid_temperature = Float(10.0, label='Temperature [degC]')
-    fluid_salinity = Float(35.0, label='Salinity [PSU]')
-    fluid_depth = Float(30.0, label='Depth [m]')
+    fluid_temperature = Range(-2.0, 60, 10.0, label='Temperature [degC]')
+    fluid_salinity = Range(0.0, 60.0, 35.0, label='Salinity [PSU]')
+    fluid_depth = Range(0.0, 15000.0, 30.0, label='Depth [m]')
 
-    freq_start = Float(12., label='Start frequency [kHz]')
-    freq_end = Float(200., label='End frequency [kHz]')
+    freq_start = Range(low=0.0, value=12., label='Start frequency [kHz]')
+    freq_end = Range(low=0.0, value=200., label='End frequency [kHz]')
     
-    averaging_bandwidth = Float(2.5, label='Bandwidth for averaged TS [kHz]')
+    averaging_bandwidth = Range(low=0.0, value=2.5, label='Bandwidth for averaged TS [kHz]')
 
     CalculateButton = Action(name='Calculate', action='calculate')   
     AboutButton = Action(name='About', action='showAbout')
@@ -251,9 +260,9 @@ class sphereTSGUI(HasTraits):
                         '10', # some extra space
                       Group(
                         Item('use_ctd', label='Calculate from T, S, and D'),
-                        Item('fluid_temperature', enabled_when='use_ctd'),
-                        Item('fluid_salinity', enabled_when='use_ctd'),
-                        Item('fluid_depth', enabled_when='use_ctd'),
+                        Item('fluid_temperature', enabled_when='use_ctd', style='text'),
+                        Item('fluid_salinity', enabled_when='use_ctd', style='text'),
+                        Item('fluid_depth', enabled_when='use_ctd', style='text'),
                         Item('fluid_c', enabled_when='not use_ctd', format_str='%.1f'),
                         Item('fluid_density', enabled_when='not use_ctd',format_str='%.1f'),
                         label='Environmental properties', show_border=True),
