@@ -1,9 +1,32 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue May 06 11:09:21 2014
+    Copyright 2014 Gavin Macaulay
 
-@author: gavinj
+    This file is part of SphereTS.
+
+    SphereTS is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    SphereTS is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with SphereTS.  If not, see <http://www.gnu.org/licenses/>.
 """
+
+# TODO:
+#
+# Package as a windows executable
+#
+# Compare results to Chu's program
+#
+# Provide a bulk TS calculation function
+#
+# Put in bitbucket and as a package on PyPI
 
 from __future__ import division
 print('Starting')
@@ -19,8 +42,16 @@ from traitsui.api import View, Item, Group, Handler, CheckListEditor, CSVListEdi
 from traitsui.menu import Action, CancelButton, OKButton
 
 class AboutDialog(HasTraits):
+    """
+    This class implements an About dialog box using the TraitsUI user interface
+    framework. The text displayed in the dialog is read from a file containing 
+    html-formatted text. 
+    """
     
     def loadHelpText(self):
+        """
+        Loads the help text from the file.
+        """
         file = open(self.helpFile, 'r')
         self.about_text = file.read()    
     
@@ -34,14 +65,22 @@ class AboutDialog(HasTraits):
 
 class uiHandler(Handler):
     """
+    This class handles user interface events.
     """
     def showAbout(self, info):
-        
+        """
+        Reloads the help text and makes the About dialog box visible.
+        """
         info.object.aboutDialog.loadHelpText()
         info.object.aboutDialog.edit_traits()
     
     def calculate(self, info):
+        """
+        Calculates the sphere target strength over a frequency range and at
+        spot frequencies. 
 
+        Displays the results using a Matplotlib figure window.        
+        """
         fstart = info.object.freq_start*1e3 # [Hz]
         fstop = info.object.freq_end*1e3 # [Hz]
         bw = info.object.averaging_bandwidth*1e3 # [Hz]
@@ -148,6 +187,7 @@ class uiHandler(Handler):
     
     def object_sphere_material_changed(self, info):
         """
+        Updates the sphere material variabls if the type of material is changed.
         """
         m = materialProperties()
 
@@ -188,23 +228,9 @@ class uiHandler(Handler):
         plt.close('all')
         return True
         
-# FIXME:
-#
-# Tidy up the class/function structure
-#
-# Package as a windows executable
-#
-# Compare results to Chu's program
-#
-# Provide a bulk TS calculation function
-#
-# Put in bitbucket and as a package on PyPI
-#
-# Prevent entry of invalid parameters into the GUI (e.g., negative values, temperatures less than -2 degC, etc)
-
 class sphereTSGUI(HasTraits):
     """
-    Calculate and show the sphere TS using a GUI
+    Calculate and show the sphere TS using the TraitsUI framework.
     """
      
     default_material = 'Tungsten carbide'
@@ -240,7 +266,7 @@ class sphereTSGUI(HasTraits):
     freq_start = Range(low=0.0, value=12., label='Start frequency [kHz]')
     freq_end = Range(low=0.0, value=200., label='End frequency [kHz]')
     
-    averaging_bandwidth = Range(low=0.0, value=2.5, label='Bandwidth for averaged TS [kHz]')
+    averaging_bandwidth = Range(low=0.1, value=2.5, label='Bandwidth for averaged TS [kHz]')
 
     CalculateButton = Action(name='Calculate', action='calculate')   
     AboutButton = Action(name='About', action='showAbout')
