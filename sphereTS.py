@@ -1,8 +1,30 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Thu May 01 14:12:05 2014
+"""    
+    This module provides a function that calculates the target strength of an 
+    elastic sphere immersed in a fluid. 
+    
+    Addition functions are included to calculate the target strength at a 
+    range of frequencies, provide default material properties for selected
+    elastic materials, and to calculate seawater properties from measurements
+    of temperature, salinity, and depth.    
 
-@author: gavinj
+
+    Copyright 2014 Gavin Macaulay
+
+    This file is part of SphereTS.
+
+    SphereTS is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    SphereTS is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with SphereTS.  If not, see <http://www.gnu.org/licenses/>.
 """
 from __future__ import division
 
