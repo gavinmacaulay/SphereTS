@@ -8,6 +8,14 @@
 <li>Set the appropriate sphere and environmental properties.
 <li>Choose the desired spot frequencies and frequency sweep limits.
 <li>Click on the <b>Calculate</b> button to produce a plot of the sphere TS.
+
+<p>The TS will then be calculated over the frequency sweep range and plotted 
+in a separate window. Both the averaged and unaveraged TS are plotted. </p>
+
+<p>The TS at the spot frequencies will be shown in
+a box in the plot window. The spot frequencies are always averaged. If the averaging 
+bandwidth would cause the frequency to be less than zero, it is truncated
+at zero and the average TS value is flagged with an asterisk.</p>
     
 <h3>Methods</h3>
 
@@ -21,7 +29,7 @@ This is done independently of the frequency sweep calculation.</p>
     
 <p>When the <em>Calculate from T,S, and D</em> option is ticked, the water sound 
 speed and density are calculated using the <a href="http://www.teos-10.org">TEOS-10</a> formulation.</p>
-   
+
 <h3>Acknowledgements</h3>
 
 The style and functioning of this program was modelled on the Matlab code 
