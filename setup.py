@@ -18,17 +18,23 @@
     You should have received a copy of the GNU General Public License
     along with SphereTS.  If not, see <http://www.gnu.org/licenses/>.
 """
+import os
+from setuptools import setup, find_packages
 
-from distutils.core import setup
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(
     name = 'sphereTS',
     version = '1.0',
-    description = 'Description text goes here',
-    long_description = '',
+    description = 'Calculates the acoustic target strength of an elastic sphere immersed in a fluid',
+    long_description = read('README.txt'),
     author = 'Gavin Macaulay', 
     author_email = 'gavin@macaulay.co.nz',
-    packages = '.',
+    scripts = ['sphereTS.py', 'sphereTSGUI.py'],
+    packages = find_packages(),
+    install_requires = ['numpy', 'traitsui', 'matplotlib', 'traits', 'scipy', 'gsw'],
+    keywords = 'acoustic TS target strength sphere calibration',
     url = 'https://bitbucket.org/gjm/spherets',
     classifiers = ('Development Status :: 4 - Beta',
                    'Intended Audience :: Science/Research',
