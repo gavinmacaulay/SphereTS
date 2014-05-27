@@ -1,6 +1,5 @@
+# -*- coding: utf-8 -*-
 """    
-    XXX
-
     Copyright 2014 Gavin Macaulay
 
     This file is part of SphereTS.
