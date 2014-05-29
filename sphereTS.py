@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""    
-    This module provides a function that calculates the target strength of an 
-    elastic sphere immersed in a fluid. 
-    
+"""
+    This module provides a function that calculates the target strength of an
+    elastic sphere immersed in a fluid.
+
     Addition functions are included to calculate the target strength at a 
     range of frequencies, provide default material properties for selected
     elastic materials, and to calculate seawater properties from measurements
@@ -32,7 +32,8 @@ from __future__ import print_function
 import math
 import cmath
 
-from scipy import special
+#from scipy import special
+from scipy.special import jv, yv
 import numpy as np
 import gsw
 
@@ -100,20 +101,20 @@ def sphereTS(f, a, c, c1, c2, rho, rho1):
         # Monostatic Reflection of Acoustic Waves by Elastic 
         # Spheres. NRL Report 6551, Acoustic Research Branch, 
         # Sound Division, Naval Research Laboratory.
-        j_q =    special.jv(l+0.5, q) * sqrpi2q
-        jm1_q =  special.jv(l-0.5, q) * sqrpi2q
+        j_q =    jv(l+0.5, q) * sqrpi2q
+        jm1_q =  jv(l-0.5, q) * sqrpi2q
         j_qd =   jm1_q - (l+1) / q * j_q
-        j_q1 =   special.jv(l+0.5, q1) * sqrpi2q1
-        jm1_q1 = special.jv(l-0.5, q1) * sqrpi2q1
+        j_q1 =   jv(l+0.5, q1) * sqrpi2q1
+        jm1_q1 = jv(l-0.5, q1) * sqrpi2q1
         j_q1d =  jm1_q1 - (l+1) / q1 * j_q1
         j_q1dd = 1 / (q1**2) * ((l+1)*(l+2) - q1**2) * j_q1 - 2.0 / q1 * jm1_q1
-        j_q2 =   special.jv(l+0.5, q2) * sqrpi2q2
-        jm1_q2 = special.jv(l-0.5, q2) * sqrpi2q2
+        j_q2 =   jv(l+0.5, q2) * sqrpi2q2
+        jm1_q2 = jv(l-0.5, q2) * sqrpi2q2
         j_q2d =  jm1_q2 - (l+1) / q2 * j_q2
         j_q2dd = 1 / (q2**2) * ((l+1)*(l+2) - q2**2) * j_q2 - 2.0 / q2 * jm1_q2
        
-        y_q =   special.yv(l+0.5, q) * sqrpi2q
-        yp1_q = special.yv(l+1.5, q) * sqrpi2q
+        y_q =   yv(l+0.5, q) * sqrpi2q
+        yp1_q = yv(l+1.5, q) * sqrpi2q
         y_qd = l / q * y_q - yp1_q
        
         A2 = (l**2 + l-2.0)*j_q2 + (q2**2)*j_q2dd
@@ -161,10 +162,10 @@ def sphereTSFreqResponse(fstart, fstop, a, c, c1, c2, rho, rho1, fstep=100):
     f = np.arange(fstart, fstop, fstep)
     TS = np.zeros(len(f))
     
-    for i in range(len(f)):
-        TS[i] = sphereTS(f[i], a, c, c1, c2, rho, rho1)
+    for i, freq in enumerate(f):
+        TS[i] = sphereTS(freq, a, c, c1, c2, rho, rho1)
         
-    return f,TS
+    return f, TS
     
 def materialProperties():
     """
