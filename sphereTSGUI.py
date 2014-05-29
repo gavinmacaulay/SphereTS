@@ -29,7 +29,6 @@
 from __future__ import division
 from __future__ import print_function
 
-print('Starting')
 from sphereTS import calcWaterProperties, materialProperties, sphereTSFreqResponse
 
 import matplotlib.pyplot as plt
@@ -245,7 +244,7 @@ class sphereTSGUI(HasTraits):
     params['c'] = 1490.0
 
     spot_freqs = [12, 18, 38, 50, 70, 120, 200, 333, 420]
-    spot_freqs = zip(spot_freqs, map(str, spot_freqs))
+    spot_freqs = list(zip(spot_freqs, list(map(str, spot_freqs))))
 
     extra_spot_freqs = List(Range(low=0., exclude_low=True), desc='comma separated frequencies [kHz]',
                             label='Additional spot freqs [kHz]')
@@ -282,7 +281,7 @@ class sphereTSGUI(HasTraits):
                 Item('sphere_diameter'),
                 Item('sphere_material', style='custom',
                      enabled_when='not use_another_material',
-                     editor=EnumEditor(values=m.keys(), cols=2)),
+                     editor=EnumEditor(values=list(m.keys()), cols=2)),
                 Item('use_another_material'),
                 Item('sphere_density', enabled_when='use_another_material'),
                 Item('sphere_c1', enabled_when='use_another_material'),
