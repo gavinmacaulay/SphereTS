@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""    
+"""
     Copyright 2014 Gavin Macaulay
 
     This file is part of SphereTS.
@@ -24,21 +24,22 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(
-    name = 'sphereTS',
-    version = '1.0',
-    description = 'Calculates the acoustic target strength of an elastic sphere immersed in a fluid',
-    long_description = read('README.txt'),
-    author = 'Gavin Macaulay', 
-    author_email = 'gavin@macaulay.co.nz',
-    scripts = ['sphereTS.py', 'sphereTSGUI.py'],
-    packages = find_packages(),
-    install_requires = ['numpy', 'traitsui', 'matplotlib', 'traits', 'scipy', 'gsw'],
-    keywords = 'acoustic TS target strength sphere calibration',
-    url = 'https://bitbucket.org/gjm/spherets',
-    classifiers = ('Development Status :: 4 - Beta',
-                   'Intended Audience :: Science/Research',
-                   'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
-                   'Operating System :: OS Independent',
-                   'Programming Language :: Python',
-                   'Topic :: Scientific/Engineering'),
-    )  
+    name='sphereTS',
+    version='1.0',
+    description='Calculates the acoustic target strength of an elastic sphere immersed in a fluid',
+    long_description=read('README.txt'),
+    author='Gavin Macaulay',
+    author_email='gavin@macaulay.co.nz',
+    scripts=['sphereTS.py', 'sphereTSGUI.py'],
+    packages=find_packages(),
+    install_requires=['numpy', 'traitsui', 'matplotlib', 'traits',
+                      'scipy', 'gsw'],
+    keywords='acoustic TS target strength sphere calibration',
+    url='https://bitbucket.org/gjm/spherets',
+    classifiers=('Development Status :: 4 - Beta',
+                 'Intended Audience :: Science/Research',
+                 'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+                 'Operating System :: OS Independent',
+                 'Programming Language :: Python',
+                 'Topic :: Scientific/Engineering'),
+    )
