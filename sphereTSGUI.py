@@ -44,21 +44,21 @@ from traitsui.menu import Action, CancelButton, OKButton
 class AboutDialog(HasTraits):
     """
     This class implements an About dialog box using the TraitsUI user interface
-    framework. The text displayed in the dialog is read from a file containing 
-    html-formatted text. 
+    framework. The text displayed in the dialog is read from a file containing
+    html-formatted text.
     """
-    
+
     def loadHelpText(self):
         """
         Loads the help text from the file.
         """
         f = open(self.helpFile, 'r')
-        self.about_text = f.read()    
-    
+        self.about_text = f.read()
+
     helpFile = 'sphereTSGUIhelp.html'
 
     about_text = Str()
-    
+
     view = View(Item('about_text', editor=HTMLEditor(), show_label=False),
                 resizable=True, title='About',
                 buttons=[OKButton])
@@ -73,27 +73,27 @@ class uiHandler(Handler):
         """
         info.object.aboutDialog.loadHelpText()
         info.object.aboutDialog.edit_traits()
-    
+
     def calculate(self, info):
         """
         Calculates the sphere target strength over a frequency range and at
-        spot frequencies. 
+        spot frequencies.
 
-        Displays the results using a Matplotlib figure window.        
+        Displays the results using a Matplotlib figure window.
         """
         fstart = info.object.freq_start*1e3 # [Hz]
         fstop = info.object.freq_end*1e3 # [Hz]
         bw = info.object.averaging_bandwidth*1e3 # [Hz]
-        
+
         # Sort out the frequency step size for the TS calculations
         Ns = 10 # minimum number of sampes per bandwidth
-        max_evaluations = 10000.0 # don't do more than this many sphere TS calculations (takes too long)
+        max_evaluations = 10000.0
 
         fstep = min(bw/Ns, 1e3)
 
         if (fstop-fstart)/fstep > max_evaluations:
             fstep = (fstop-fstart)/max_evaluations
-        
+
         params = {'fstart': max(1.0, (fstart-bw)),
                   'fstop': (fstop+bw),
                   'fstep': fstep,
@@ -109,7 +109,7 @@ class uiHandler(Handler):
         # Do a running mean of length N.
         N = round(bw/fstep)
         TS_avg = 10*np.log10(np.convolve(np.power(10.0, TS/10.0), np.ones((N,))/N, mode='same'))
-        
+
         # Since we added a little to the frequency range above, to give valid
         # averaging out to the supplied frequency limits, we now trim the data
         # back to the requested limits
@@ -117,7 +117,7 @@ class uiHandler(Handler):
         f = f[N:-N]
         TS = TS[N:-N]
         TS_avg = TS_avg[N:-N]
-                  
+
         plt.ion()
         plt.figure()
         plt.gca().set_position((.1, .15, .8, .75))
@@ -133,11 +133,11 @@ class uiHandler(Handler):
         if info.object.use_another_material:
             title_text = 'User defined sphere, {} mm'.format(params['a']*2000)
         else:
-            title_text = '{} sphere, {} mm'.format(info.object.sphere_material, 
+            title_text = '{} sphere, {} mm'.format(info.object.sphere_material,
                                                    params['a']*2000)
 
         plt.title(title_text)
-        
+
         # Then do the spot frequencies
 
         # Merge the two spot frequency lists, then convert to a set to keep
@@ -151,20 +151,20 @@ class uiHandler(Handler):
             params['fstart'] = (f*1e3-bw/2)
             params['fstop'] = (f*1e3+bw/2)
             params['fstep'] = bw/20
-            
+
             average_truncated = False
             if params['fstart'] < 0.0:
                 params['fstart'] = 1
                 average_truncated = True
-                
+
             ff, TS = sphereTSFreqResponse(**params)
             avgTS = 10.0*np.log10(np.average(np.power(10.0, TS/10.0)))
-            
+
             plt.plot(f, avgTS, 'o')
             spot_TS_text = spot_TS_text + '\n{:>8g}     {:>8.1f}'.format(f, avgTS)
             if average_truncated:
                 spot_TS_text = spot_TS_text + '*'
-        
+
         # Put a table of freq and TS values on the plot
         if len(freqs) > 0:
             ax = plt.gca()
@@ -173,18 +173,18 @@ class uiHandler(Handler):
             text_x_pos = (xlim[1] - xlim[0])*0.05 + xlim[0]
             text_y_pos = (ylim[1] - ylim[0])*0.05 + ylim[0]
 
-            plt.text(text_x_pos, text_y_pos, spot_TS_text, 
+            plt.text(text_x_pos, text_y_pos, spot_TS_text,
                      verticalalignment='bottom', horizontalalignment='left',
-                     bbox=dict(boxstyle='round,pad=0.5', 
+                     bbox=dict(boxstyle='round,pad=0.5',
                                facecolor='w', edgecolor='k'))
-                    
+
         # Put the material properties on the plot too.
         material_text = '$\\rho = {:.1f} \/ kg/m^3$, $c = {:.1f} \/ m/s$, $\\rho_1 = {:.1f}$, $c_1 = {:.1f}$, $c_2 = {:.1f}$, $bw = {:.2f} \/ kHz$'\
         .format(params['rho'], params['c'], params['rho1'], \
                         params['c1'], params['c2'], bw/1e3)
         plt.figtext(0.02, 0.02, material_text)
         plt.draw()
-    
+
     def object_sphere_material_changed(self, info):
         """
         Updates the sphere material variabls if the type of material is changed.
@@ -195,42 +195,42 @@ class uiHandler(Handler):
         info.object.sphere_density = s['rho1']
         info.object.sphere_c1 = s['c1']
         info.object.sphere_c2 = s['c2']
-        
+
     def object_fluid_temperature_changed(self, info):
         self.updateFluidProperties(info)
-        
+
     def object_fluid_salinity_changed(self, info):
         self.updateFluidProperties(info)
 
     def object_fluid_depth_changed(self, info):
         self.updateFluidProperties(info)
-    
+
     def updateFluidProperties(self, info):
-        c, rho = calcWaterProperties(info.object.fluid_salinity, 
+        c, rho = calcWaterProperties(info.object.fluid_salinity,
                                      info.object.fluid_temperature,
                                      info.object.fluid_depth)
         info.object.fluid_c = c
         info.object.fluid_density = rho
-        
+
     def object_use_ctd_changed(self, info):
         if info.object.use_ctd:
             self.updateFluidProperties(info)
-            
+
     def object_use_another_material_changed(self, info):
         # when we switch back to specific material, make sure
         # to reset the displayed material properties
         if not info.object.use_another_material:
             self.object_sphere_material_changed(info)
-                
+
     def close(self, info, is_ok):
         plt.close('all')
         return True
-        
+
 class sphereTSGUI(HasTraits):
     """
     Calculate and show the sphere TS using the TraitsUI framework.
     """
-     
+
     default_material = 'Tungsten carbide'
     m = materialProperties()
     params = m[default_material]
@@ -238,13 +238,13 @@ class sphereTSGUI(HasTraits):
     params['a'] = 0.0381/2.0
     params['rho'] = 1026.2
     params['c'] = 1490.0
-    
+
     spot_freqs = [12, 18, 38, 50, 70, 120, 200, 333, 420]
     spot_freqs = zip(spot_freqs, map(str, spot_freqs))
-                   
+
     extra_spot_freqs = List(Range(low=0., exclude_low=True), desc='comma separated frequencies [kHz]',
                             label='Additional spot freqs [kHz]')
-    
+
     sphere_material = Str(params['material'], label='Material')
     sphere_diameter = Range(low=0., value=params['a']*2*1000.0, exclude_low=True, label='Diameter [mm]')
     sphere_density = Range(low=0., value=params['rho1'], exclude_low=True, label='Density [kg/m^3]')
@@ -253,33 +253,33 @@ class sphereTSGUI(HasTraits):
 
     use_ctd = Bool(True)
     use_another_material = Bool(False, label='Another material')
-    
+
     fluid_c = Range(low=0., value=params['c'], exclude_low=True, label='Sound speed in water [m/s]')
     fluid_density = Range(low=0., value=params['rho'], exclude_low=True, label='Density of water [kg/m^3]')
-    
+
     fluid_temperature = Range(-2.0, 60, 10.0, label='Temperature [degC]')
     fluid_salinity = Range(0.0, 60.0, 35.0, label='Salinity [PSU]')
     fluid_depth = Range(0.0, 15000.0, 30.0, label='Depth [m]')
 
     freq_start = Range(low=0.0, value=12., label='Start frequency [kHz]')
     freq_end = Range(low=0.0, value=200., label='End frequency [kHz]')
-    
+
     averaging_bandwidth = Range(low=0.1, value=2.5, label='Bandwidth for averaged TS [kHz]')
 
-    CalculateButton = Action(name='Calculate', action='calculate')   
+    CalculateButton = Action(name='Calculate', action='calculate')
     AboutButton = Action(name='About', action='showAbout')
 
     aboutDialog = AboutDialog()
 
     view = View(Group(Group(
                         Item('sphere_diameter'),
-                        Item('sphere_material', style='custom', 
+                        Item('sphere_material', style='custom',
                              enabled_when='not use_another_material',
-                             editor=EnumEditor(values=m.keys(), cols=2)), 
+                             editor=EnumEditor(values=m.keys(), cols=2)),
                         Item('use_another_material'),
                         Item('sphere_density', enabled_when='use_another_material'),
                         Item('sphere_c1', enabled_when='use_another_material'),
-                        Item('sphere_c2', enabled_when='use_another_material'), 
+                        Item('sphere_c2', enabled_when='use_another_material'),
                         label='Sphere properties', show_border=True),
                         '10', # some extra space
                       Group(
@@ -288,22 +288,22 @@ class sphereTSGUI(HasTraits):
                         Item('fluid_salinity', enabled_when='use_ctd', style='text'),
                         Item('fluid_depth', enabled_when='use_ctd', style='text'),
                         Item('fluid_c', enabled_when='not use_ctd', format_str='%.1f'),
-                        Item('fluid_density', enabled_when='not use_ctd',format_str='%.1f'),
+                        Item('fluid_density', enabled_when='not use_ctd', format_str='%.1f'),
                         label='Environmental properties', show_border=True),
                         '10', # some extra space
                       Group(
                         Item('spot_freqs', style='custom',
-                             label='Spot frequencies [kHz]', 
+                             label='Spot frequencies [kHz]',
                              editor=CheckListEditor(values=spot_freqs, cols=3)),
                         Item('extra_spot_freqs', editor=CSVListEditor()),
                         Item('freq_start'),
                         Item('freq_end'),
                         Item('averaging_bandwidth'),
                         label='Frequencies', show_border=True)),
-            resizable=True, 
+            resizable=True,
             title='Sphere TS calculator',
-            buttons = [AboutButton, CalculateButton, CancelButton],
-            handler = uiHandler())
+            buttons=[AboutButton, CalculateButton, CancelButton],
+            handler=uiHandler())
 
 
 if __name__ == "__main__":
