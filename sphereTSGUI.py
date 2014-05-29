@@ -48,6 +48,12 @@ class AboutDialog(HasTraits):
     html-formatted text.
     """
 
+    helpFile = 'sphereTSGUIhelp.html'
+    about_text = Str()
+    view = View(Item('about_text', editor=HTMLEditor(), show_label=False),
+                resizable=True, title='About',
+                buttons=[OKButton])
+
     def loadHelpText(self):
         """
         Loads the help text from the file.
@@ -55,13 +61,6 @@ class AboutDialog(HasTraits):
         f = open(self.helpFile, 'r')
         self.about_text = f.read()
 
-    helpFile = 'sphereTSGUIhelp.html'
-
-    about_text = Str()
-
-    view = View(Item('about_text', editor=HTMLEditor(), show_label=False),
-                resizable=True, title='About',
-                buttons=[OKButton])
 
 class uiHandler(Handler):
     """
@@ -127,7 +126,7 @@ class uiHandler(Handler):
         plt.ylabel('TS (dB re 1 m$^2$)')
         plt.xlim(fstart/1e3, fstop/1e3)
         plt.grid()
-        plt.legend(('Unaveraged TS', 'Averaged TS'), loc='lower right', 
+        plt.legend(('Unaveraged TS', 'Averaged TS'), loc='lower right',
                    fancybox=True, fontsize=12)
 
         if info.object.use_another_material:
@@ -187,7 +186,7 @@ class uiHandler(Handler):
 
     def object_sphere_material_changed(self, info):
         """
-        Updates the sphere material variabls if the type of material is changed.
+        Updates the sphere material variables if the type of material is changed.
         """
         m = materialProperties()
 
@@ -197,15 +196,19 @@ class uiHandler(Handler):
         info.object.sphere_c2 = s['c2']
 
     def object_fluid_temperature_changed(self, info):
+        """ Recalculates the fluid properties if the temperature changes."""
         self.updateFluidProperties(info)
 
     def object_fluid_salinity_changed(self, info):
+        """ Recalculates the fluid properties if the salinity changes."""
         self.updateFluidProperties(info)
 
     def object_fluid_depth_changed(self, info):
+        """ Recalculates the fluid properties if the depth changes."""
         self.updateFluidProperties(info)
 
     def updateFluidProperties(self, info):
+        """ Recalculates the fluid properties."""
         c, rho = calcWaterProperties(info.object.fluid_salinity,
                                      info.object.fluid_temperature,
                                      info.object.fluid_depth)
@@ -213,12 +216,14 @@ class uiHandler(Handler):
         info.object.fluid_density = rho
 
     def object_use_ctd_changed(self, info):
+        """ Recalculate the fluid properties when switching between the two 
+            options for getting the fluid density and sound speed."""
         if info.object.use_ctd:
             self.updateFluidProperties(info)
 
     def object_use_another_material_changed(self, info):
-        # when we switch back to specific material, make sure
-        # to reset the displayed material properties
+        """ Reset the material properties when switching back to using
+            a specified material."""
         if not info.object.use_another_material:
             self.object_sphere_material_changed(info)
 
@@ -271,40 +276,42 @@ class sphereTSGUI(HasTraits):
 
     aboutDialog = AboutDialog()
 
-    view = View(Group(Group(
-                        Item('sphere_diameter'),
-                        Item('sphere_material', style='custom',
-                             enabled_when='not use_another_material',
-                             editor=EnumEditor(values=m.keys(), cols=2)),
-                        Item('use_another_material'),
-                        Item('sphere_density', enabled_when='use_another_material'),
-                        Item('sphere_c1', enabled_when='use_another_material'),
-                        Item('sphere_c2', enabled_when='use_another_material'),
-                        label='Sphere properties', show_border=True),
-                        '10', # some extra space
-                      Group(
-                        Item('use_ctd', label='Calculate from T, S, and D'),
-                        Item('fluid_temperature', enabled_when='use_ctd', style='text'),
-                        Item('fluid_salinity', enabled_when='use_ctd', style='text'),
-                        Item('fluid_depth', enabled_when='use_ctd', style='text'),
-                        Item('fluid_c', enabled_when='not use_ctd', format_str='%.1f'),
-                        Item('fluid_density', enabled_when='not use_ctd', format_str='%.1f'),
-                        label='Environmental properties', show_border=True),
-                        '10', # some extra space
-                      Group(
-                        Item('spot_freqs', style='custom',
-                             label='Spot frequencies [kHz]',
-                             editor=CheckListEditor(values=spot_freqs, cols=3)),
-                        Item('extra_spot_freqs', editor=CSVListEditor()),
-                        Item('freq_start'),
-                        Item('freq_end'),
-                        Item('averaging_bandwidth'),
-                        label='Frequencies', show_border=True)),
-            resizable=True,
-            title='Sphere TS calculator',
-            buttons=[AboutButton, CalculateButton, CancelButton],
-            handler=uiHandler())
-
+    view = View(
+        Group(
+            Group(
+                Item('sphere_diameter'),
+                Item('sphere_material', style='custom',
+                     enabled_when='not use_another_material',
+                     editor=EnumEditor(values=m.keys(), cols=2)),
+                Item('use_another_material'),
+                Item('sphere_density', enabled_when='use_another_material'),
+                Item('sphere_c1', enabled_when='use_another_material'),
+                Item('sphere_c2', enabled_when='use_another_material'),
+                label='Sphere properties', show_border=True),
+            '10', # some extra space
+            Group(
+                Item('use_ctd', label='Calculate from T, S, and D'),
+                Item('fluid_temperature', enabled_when='use_ctd', style='text'),
+                Item('fluid_salinity', enabled_when='use_ctd', style='text'),
+                Item('fluid_depth', enabled_when='use_ctd', style='text'),
+                Item('fluid_c', enabled_when='not use_ctd', format_str='%.1f'),
+                Item('fluid_density', enabled_when='not use_ctd', format_str='%.1f'),
+                label='Environmental properties', show_border=True),
+            '10', # some extra space
+            Group(
+                Item('spot_freqs', style='custom',
+                     label='Spot frequencies [kHz]',
+                     editor=CheckListEditor(values=spot_freqs, cols=3)),
+                Item('extra_spot_freqs', editor=CSVListEditor()),
+                Item('freq_start'),
+                Item('freq_end'),
+                Item('averaging_bandwidth'),
+                label='Frequencies', show_border=True)
+            ),
+        resizable=True,
+        title='Sphere TS calculator',
+        buttons=[AboutButton, CalculateButton, CancelButton],
+        handler=uiHandler())
 
 if __name__ == "__main__":
     ts = sphereTSGUI()
