@@ -52,8 +52,8 @@ class AboutDialog(HasTraits):
         """
         Loads the help text from the file.
         """
-        file = open(self.helpFile, 'r')
-        self.about_text = file.read()    
+        f = open(self.helpFile, 'r')
+        self.about_text = f.read()    
     
     helpFile = 'sphereTSGUIhelp.html'
 
@@ -201,11 +201,9 @@ class uiHandler(Handler):
         
     def object_fluid_salinity_changed(self, info):
         self.updateFluidProperties(info)
-        pass
 
     def object_fluid_depth_changed(self, info):
         self.updateFluidProperties(info)
-        pass
     
     def updateFluidProperties(self, info):
         c, rho = calcWaterProperties(info.object.fluid_salinity, 
@@ -244,7 +242,7 @@ class sphereTSGUI(HasTraits):
     spot_freqs = [12, 18, 38, 50, 70, 120, 200, 333, 420]
     spot_freqs = zip(spot_freqs, map(str, spot_freqs))
                    
-    extra_spot_freqs = List(Range(low=0., exclude_low=True),desc='comma separated frequencies [kHz]',
+    extra_spot_freqs = List(Range(low=0., exclude_low=True), desc='comma separated frequencies [kHz]',
                             label='Additional spot freqs [kHz]')
     
     sphere_material = Str(params['material'], label='Material')
