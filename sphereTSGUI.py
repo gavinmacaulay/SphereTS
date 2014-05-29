@@ -25,10 +25,10 @@
 # Compare results to Chu's program
 #
 # Provide a bulk TS calculation function
-#
-# Put in bitbucket and as a package on PyPI
 
 from __future__ import division
+from __future__ import print_function
+
 print('Starting')
 from sphereTS import calcWaterProperties, materialProperties, sphereTSFreqResponse
 
@@ -113,7 +113,7 @@ class uiHandler(Handler):
         # Since we added a little to the frequency range above, to give valid
         # averaging out to the supplied frequency limits, we now trim the data
         # back to the requested limits
-        N = math.floor(N/2.0)
+        N = int(math.floor(N/2.0))
         f = f[N:-N]
         TS = TS[N:-N]
         TS_avg = TS_avg[N:-N]
