@@ -24,6 +24,8 @@
 #
 # Compare results to Chu's program
 #
+# Add unittests
+#
 # Provide a bulk TS calculation function
 
 from __future__ import division
@@ -48,7 +50,7 @@ class AboutDialog(HasTraits):
     html-formatted text.
     """
 
-    helpFile = 'sphereTSGUIhelp.html'
+    helpFile = 'about.html'
     about_text = Str()
     view = View(Item('about_text', editor=HTMLEditor(), show_label=False),
                 resizable=True, title='About',
@@ -150,7 +152,7 @@ class UIHandler(Handler):
         for f in freqs:
             params['fstart'] = (f*1e3-bw/2)
             params['fstop'] = (f*1e3+bw/2)
-            params['fstep'] = bw/20
+            params['fstep'] = bw/20.0
 
             average_truncated = False
             if params['fstart'] < 0.0:
