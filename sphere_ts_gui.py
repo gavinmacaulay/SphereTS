@@ -29,7 +29,7 @@
 from __future__ import division
 from __future__ import print_function
 
-from sphereTS import calcWaterProperties, materialProperties, sphereTSFreqResponse
+import sphere_ts
 
 import matplotlib.pyplot as plt
 import math
@@ -37,7 +37,8 @@ import math
 import numpy as np
 
 from traits.api import HasTraits, Str, List, Bool, Range
-from traitsui.api import View, Item, Group, Handler, CheckListEditor, CSVListEditor, EnumEditor, HTMLEditor
+from traitsui.api import View, Item, Group, Handler
+from traitsui.api import CheckListEditor, CSVListEditor, EnumEditor, HTMLEditor
 from traitsui.menu import Action, CancelButton, OKButton
 
 class AboutDialog(HasTraits):
@@ -53,7 +54,7 @@ class AboutDialog(HasTraits):
                 resizable=True, title='About',
                 buttons=[OKButton])
 
-    def loadHelpText(self):
+    def load_help_text(self):
         """
         Loads the help text from the file.
         """
@@ -61,15 +62,15 @@ class AboutDialog(HasTraits):
         self.about_text = f.read()
 
 
-class uiHandler(Handler):
+class UIHandler(Handler):
     """
     This class handles user interface events.
     """
-    def showAbout(self, info):
+    def show_about(self, info):
         """
         Reloads the help text and makes the About dialog box visible.
         """
-        info.object.aboutDialog.loadHelpText()
+        info.object.aboutDialog.load_help_text()
         info.object.aboutDialog.edit_traits()
 
     def calculate(self, info):
@@ -102,25 +103,26 @@ class uiHandler(Handler):
                   'c': info.object.fluid_c,
                   'rho': info.object.fluid_density}
 
-        f, TS = sphereTSFreqResponse(**params)
+        f, ts = sphere_ts.freq_response(**params)
 
         # Do a running mean of length N.
         N = round(bw/fstep)
-        TS_avg = 10*np.log10(np.convolve(np.power(10.0, TS/10.0), np.ones((N,))/N, mode='same'))
+        ts_avg = 10*np.log10(np.convolve(np.power(10.0, ts/10.0),
+                                         np.ones((N,))/N, mode='same'))
 
         # Since we added a little to the frequency range above, to give valid
         # averaging out to the supplied frequency limits, we now trim the data
         # back to the requested limits
         N = int(math.floor(N/2.0))
         f = f[N:-N]
-        TS = TS[N:-N]
-        TS_avg = TS_avg[N:-N]
+        ts = ts[N:-N]
+        ts_avg = ts_avg[N:-N]
 
         plt.ion()
         plt.figure()
         plt.gca().set_position((.1, .15, .8, .75))
-        plt.plot(f/1e3, TS, linewidth=1.5, color='#1b9e77')
-        plt.plot(f/1e3, TS_avg, linewidth=1.5, color='#d95f02')
+        plt.plot(f/1e3, ts, linewidth=1.5, color='#1b9e77')
+        plt.plot(f/1e3, ts_avg, linewidth=1.5, color='#d95f02')
         plt.xlabel('Frequency (kHz)')
         plt.ylabel('TS (dB re 1 m$^2$)')
         plt.xlim(fstart/1e3, fstop/1e3)
@@ -144,7 +146,7 @@ class uiHandler(Handler):
         freqs.sort()
 
         # Calculate a set of TS around each spot frequency and then average
-        spot_TS_text = 'f (kHz)     Avg. TS (dB)'
+        spot_ts_text = 'f (kHz)     Avg. TS (dB)'
         for f in freqs:
             params['fstart'] = (f*1e3-bw/2)
             params['fstop'] = (f*1e3+bw/2)
@@ -155,13 +157,14 @@ class uiHandler(Handler):
                 params['fstart'] = 1
                 average_truncated = True
 
-            ff, TS = sphereTSFreqResponse(**params)
-            avgTS = 10.0*np.log10(np.average(np.power(10.0, TS/10.0)))
+            ff, ts = sphere_ts.freq_response(**params)
+            avg_ts = 10.0*np.log10(np.average(np.power(10.0, ts/10.0)))
 
-            plt.plot(f, avgTS, 'o')
-            spot_TS_text = spot_TS_text + '\n{:>8g}     {:>8.1f}'.format(f, avgTS)
+            plt.plot(f, avg_ts, 'o')
+            spot_ts_text = spot_ts_text + \
+                '\n{:>8g}     {:>8.1f}'.format(f, avg_ts)
             if average_truncated:
-                spot_TS_text = spot_TS_text + '*'
+                spot_ts_text = spot_ts_text + '*'
 
         # Put a table of freq and TS values on the plot
         if len(freqs) > 0:
@@ -171,23 +174,26 @@ class uiHandler(Handler):
             text_x_pos = (xlim[1] - xlim[0])*0.05 + xlim[0]
             text_y_pos = (ylim[1] - ylim[0])*0.05 + ylim[0]
 
-            plt.text(text_x_pos, text_y_pos, spot_TS_text,
+            plt.text(text_x_pos, text_y_pos, spot_ts_text,
                      verticalalignment='bottom', horizontalalignment='left',
                      bbox=dict(boxstyle='round,pad=0.5',
                                facecolor='w', edgecolor='k'))
 
         # Put the material properties on the plot too.
-        material_text = '$\\rho = {:.1f} \/ kg/m^3$, $c = {:.1f} \/ m/s$, $\\rho_1 = {:.1f}$, $c_1 = {:.1f}$, $c_2 = {:.1f}$, $bw = {:.2f} \/ kHz$'\
-        .format(params['rho'], params['c'], params['rho1'], \
-                        params['c1'], params['c2'], bw/1e3)
+        material_text = '$\\rho = {:.1f} \/ kg/m^3$, $c = {:.1f} \/ m/s$, '\
+                        '$\\rho_1 = {:.1f}$, $c_1 = {:.1f}$, $c_2 = {:.1f}$, '\
+                        '$bw = {:.2f} \/ kHz$'\
+                        .format(params['rho'], params['c'], params['rho1'], \
+                            params['c1'], params['c2'], bw/1e3)
         plt.figtext(0.02, 0.02, material_text)
         plt.draw()
 
     def object_sphere_material_changed(self, info):
         """
-        Updates the sphere material variables if the type of material is changed.
+        Updates the sphere material variables if the type of material is
+        changed.
         """
-        m = materialProperties()
+        m = sphere_ts.material_properties()
 
         s = m[info.object.sphere_material]
         info.object.sphere_density = s['rho1']
@@ -196,29 +202,29 @@ class uiHandler(Handler):
 
     def object_fluid_temperature_changed(self, info):
         """ Recalculates the fluid properties if the temperature changes."""
-        self.updateFluidProperties(info)
+        self.update_fluid_properties(info)
 
     def object_fluid_salinity_changed(self, info):
         """ Recalculates the fluid properties if the salinity changes."""
-        self.updateFluidProperties(info)
+        self.update_fluid_properties(info)
 
     def object_fluid_depth_changed(self, info):
         """ Recalculates the fluid properties if the depth changes."""
-        self.updateFluidProperties(info)
+        self.update_fluid_properties(info)
 
-    def updateFluidProperties(self, info):
+    def update_fluid_properties(self, info):
         """ Recalculates the fluid properties."""
-        c, rho = calcWaterProperties(info.object.fluid_salinity,
-                                     info.object.fluid_temperature,
-                                     info.object.fluid_depth)
+        c, rho = sphere_ts.water_properties(info.object.fluid_salinity,
+                                            info.object.fluid_temperature,
+                                            info.object.fluid_depth)
         info.object.fluid_c = c
         info.object.fluid_density = rho
 
     def object_use_ctd_changed(self, info):
-        """ Recalculate the fluid properties when switching between the two 
+        """ Recalculate the fluid properties when switching between the two
             options for getting the fluid density and sound speed."""
         if info.object.use_ctd:
-            self.updateFluidProperties(info)
+            self.update_fluid_properties(info)
 
     def object_use_another_material_changed(self, info):
         """ Reset the material properties when switching back to using
@@ -230,13 +236,13 @@ class uiHandler(Handler):
         plt.close('all')
         return True
 
-class sphereTSGUI(HasTraits):
+class SphereTSGUI(HasTraits):
     """
     Calculate and show the sphere TS using the TraitsUI framework.
     """
 
     default_material = 'Tungsten carbide'
-    m = materialProperties()
+    m = sphere_ts.material_properties()
     params = m[default_material]
     params['material'] = default_material
     params['a'] = 0.0381/2.0
@@ -246,20 +252,27 @@ class sphereTSGUI(HasTraits):
     spot_freqs = [12, 18, 38, 50, 70, 120, 200, 333, 420]
     spot_freqs = list(zip(spot_freqs, list(map(str, spot_freqs))))
 
-    extra_spot_freqs = List(Range(low=0., exclude_low=True), desc='comma separated frequencies [kHz]',
+    extra_spot_freqs = List(Range(low=0., exclude_low=True),
+                            desc='comma separated frequencies [kHz]',
                             label='Additional spot freqs [kHz]')
 
     sphere_material = Str(params['material'], label='Material')
-    sphere_diameter = Range(low=0., value=params['a']*2*1000.0, exclude_low=True, label='Diameter [mm]')
-    sphere_density = Range(low=0., value=params['rho1'], exclude_low=True, label='Density [kg/m^3]')
-    sphere_c1 = Range(low=0., value=params['c1'], exclude_low=True, label='Longitudal sound speed [m/s]')
-    sphere_c2 = Range(low=0., value=params['c2'], exclude_low=True, label='Transverse sound speed [m/s]')
+    sphere_diameter = Range(low=0., value=params['a']*2*1000.0,
+                            exclude_low=True, label='Diameter [mm]')
+    sphere_density = Range(low=0., value=params['rho1'], exclude_low=True,
+                           label='Density [kg/m^3]')
+    sphere_c1 = Range(low=0., value=params['c1'], exclude_low=True,
+                      label='Longitudal sound speed [m/s]')
+    sphere_c2 = Range(low=0., value=params['c2'], exclude_low=True,
+                      label='Transverse sound speed [m/s]')
 
     use_ctd = Bool(True)
     use_another_material = Bool(False, label='Another material')
 
-    fluid_c = Range(low=0., value=params['c'], exclude_low=True, label='Sound speed in water [m/s]')
-    fluid_density = Range(low=0., value=params['rho'], exclude_low=True, label='Density of water [kg/m^3]')
+    fluid_c = Range(low=0., value=params['c'], exclude_low=True,
+                    label='Sound speed in water [m/s]')
+    fluid_density = Range(low=0., value=params['rho'], exclude_low=True,
+                          label='Density of water [kg/m^3]')
 
     fluid_temperature = Range(-2.0, 60, 10.0, label='Temperature [degC]')
     fluid_salinity = Range(0.0, 60.0, 35.0, label='Salinity [PSU]')
@@ -268,10 +281,11 @@ class sphereTSGUI(HasTraits):
     freq_start = Range(low=0.0, value=12., label='Start frequency [kHz]')
     freq_end = Range(low=0.0, value=200., label='End frequency [kHz]')
 
-    averaging_bandwidth = Range(low=0.1, value=2.5, label='Bandwidth for averaged TS [kHz]')
+    averaging_bandwidth = Range(low=0.1, value=2.5,
+                                label='Bandwidth for averaged TS [kHz]')
 
     CalculateButton = Action(name='Calculate', action='calculate')
-    AboutButton = Action(name='About', action='showAbout')
+    AboutButton = Action(name='About', action='show_about')
 
     aboutDialog = AboutDialog()
 
@@ -294,7 +308,8 @@ class sphereTSGUI(HasTraits):
                 Item('fluid_salinity', enabled_when='use_ctd', style='text'),
                 Item('fluid_depth', enabled_when='use_ctd', style='text'),
                 Item('fluid_c', enabled_when='not use_ctd', format_str='%.1f'),
-                Item('fluid_density', enabled_when='not use_ctd', format_str='%.1f'),
+                Item('fluid_density', enabled_when='not use_ctd',
+                     format_str='%.1f'),
                 label='Environmental properties', show_border=True),
             '10', # some extra space
             Group(
@@ -310,8 +325,8 @@ class sphereTSGUI(HasTraits):
         resizable=True,
         title='Sphere TS calculator',
         buttons=[AboutButton, CalculateButton, CancelButton],
-        handler=uiHandler())
+        handler=UIHandler())
 
 if __name__ == "__main__":
-    ts = sphereTSGUI()
-    ts.configure_traits()
+    gui = SphereTSGUI()
+    gui.configure_traits()

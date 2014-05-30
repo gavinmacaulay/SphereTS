@@ -36,7 +36,7 @@ from scipy.special import jv, yv
 import numpy as np
 import gsw
 
-def sphereTS(f, a, c, c1, c2, rho, rho1):
+def sphere_ts(f, a, c, c1, c2, rho, rho1):
     """
     Calculates the acoustic backscattered target strength of an
     elastic sphere immersed in a fluid.
@@ -65,19 +65,26 @@ def sphereTS(f, a, c, c1, c2, rho, rho1):
     """
 
     if f <= 0:
-        raise ValueError("Frequency must be greater than 0 (was {}).".format(f))
+        raise ValueError(
+            "Frequency must be greater than 0 (was {}).".format(f))
     if a <= 0:
-        raise ValueError('Sphere radius must be greater than 0 (was {}).'.format(a))
+        raise ValueError(
+            'Sphere radius must be greater than 0 (was {}).'.format(a))
     if c <= 0:
-        raise ValueError('Fluid sound speed must be greater than 0 (was {})'.format(c))
+        raise ValueError(
+            'Fluid sound speed must be greater than 0 (was {})'.format(c))
     if c1 <= 0:
-        raise ValueError('Longitudinal sound speed of the sphere must be greater than 0 (was {})'.format(c1))
+        raise ValueError(
+            'The sphere longitudinal sound speed must be greater than 0 (was {})'.format(c1))
     if c2 <= 0:
-        raise ValueError('Transverse sound speed of the sphere must be greater than 0 (was {})'.format(c2))
+        raise ValueError(
+            'The sphere transverse sound speed must be greater than 0 (was {})'.format(c2))
     if rho <= 0:
-        raise ValueError('Density of the fluid must be greater than 0 (was {})'.format(rho))
+        raise ValueError(
+            'The fluid density must be greater than 0 (was {})'.format(rho))
     if rho1 <= 0:
-        raise ValueError('Density of the sphere must be greater than 0 (was {})'.format(rho1))
+        raise ValueError(
+            'The sphere density must be greater than 0 (was {})'.format(rho1))
 
     k = 2.0*math.pi*f/c
     q = k*a
@@ -133,7 +140,7 @@ def sphereTS(f, a, c, c1, c2, rho, rho1):
 
     return 10.0 * math.log10(sigma / (4.0*math.pi))
 
-def sphereTSFreqResponse(fstart, fstop, a, c, c1, c2, rho, rho1, fstep=100):
+def freq_response(fstart, fstop, a, c, c1, c2, rho, rho1, fstep=100):
     """
     Calculates the acoustic backscattered target strength of an
     elastic sphere immersed in a fluid at a range of frequencies.
@@ -159,14 +166,14 @@ def sphereTSFreqResponse(fstart, fstop, a, c, c1, c2, rho, rho1, fstep=100):
     """
 
     f = np.arange(fstart, fstop, fstep)
-    TS = np.zeros(len(f))
+    ts = np.zeros(len(f))
 
     for i, freq in enumerate(f):
-        TS[i] = sphereTS(freq, a, c, c1, c2, rho, rho1)
+        ts[i] = sphere_ts(freq, a, c, c1, c2, rho, rho1)
 
-    return f, TS
+    return f, ts
 
-def materialProperties():
+def material_properties():
     """
     Provides sound speed and density values for selected sphere materials.
 
@@ -182,14 +189,14 @@ def materialProperties():
             'Stainless steel':  {'c1': 5610.0, 'c2': 3120.0, 'rho1':  7800.0},
             'Alumnium':         {'c1': 6260.0, 'c2': 3080.0, 'rho1':  2700.0}}
 
-def calcWaterProperties(SP, t, p):
+def water_properties(sp, t, p):
     """
     Calculates seawater density and sound speed using the TEOS-10 equations.
 
     Uses the gsw toolbox, which is a wrapper around the C-based TEOS-10 library.
 
     Args:
-        :SP: Practical salinity [PSU]
+        :sp: Practical salinity [PSU]
         :t: Temperature [degC]
         :p: Pressure [dbar]
 
@@ -198,11 +205,11 @@ def calcWaterProperties(SP, t, p):
         :rho: density of water [kg/m^3]
     """
 
-    SR = gsw.SR_from_SP(SP)
-    CT = gsw.CT_from_t(SR, t, p)
+    sr = gsw.SR_from_SP(sp)
+    ct = gsw.CT_from_t(sr, t, p)
 
-    c = gsw.sound_speed(SR, CT, p)
-    rho = gsw.rho(SR, CT, p)
+    c = gsw.sound_speed(sr, ct, p)
+    rho = gsw.rho(sr, ct, p)
 
     return c, rho
 
