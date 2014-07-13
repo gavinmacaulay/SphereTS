@@ -25,8 +25,6 @@
 # Compare results to Chu's program
 #
 # Add unittests
-#
-# Provide a bulk TS calculation function
 
 from __future__ import division
 from __future__ import print_function
@@ -42,6 +40,8 @@ from traits.api import HasTraits, Str, List, Bool, Range
 from traitsui.api import View, Item, Group, Handler
 from traitsui.api import CheckListEditor, CSVListEditor, EnumEditor, HTMLEditor
 from traitsui.menu import Action, CancelButton, OKButton
+
+import TableFactory as tf
 
 class AboutDialog(HasTraits):
     """
@@ -63,6 +63,16 @@ class AboutDialog(HasTraits):
         f = open(self.helpFile, 'r')
         self.about_text = f.read()
 
+class EK60Dialog(HasTraits):
+    """
+    """
+    html_text = Str()
+    PDFSaveButton = Action(name='Save as PDF', action='save_as_pdf')
+    view = View(Item('html_text',
+                     editor=HTMLEditor(format_text=False), show_label=False), 
+                     title='EK60',
+                     buttons=[PDFSaveButton, OKButton],
+                     resizable=True)
 
 class UIHandler(Handler):
     """
@@ -74,6 +84,74 @@ class UIHandler(Handler):
         """
         info.object.aboutDialog.load_help_text()
         info.object.aboutDialog.edit_traits()
+        
+    def show_ek60_ts(self, info):
+        """
+        """
+        htmlheader = """\
+        <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+        <html>
+        <head>
+        <title>Sample table</title>
+        <style type="text/css">
+        body { font-family: Helvetica,Arial,FreeSans; }
+        table.reporttable { border-style: solid; border-width: 1px; border-collapse: collapse;}
+        table.reporttable td { padding: 5px 5px 3px 3px;}
+        table.reporttable .odd td { background-color: #eee; }
+        table.reporttable .even td { background-color: #bbb; }
+        table.reporttable th { background-color: blue; color: white; }
+        table.reporttable td.cell_bold { font-weight: bold; }
+        table.reporttable td.cell_money { text-align: right; font-family: monospace; }
+        </style>
+        </head>
+        <body>
+        """
+        
+        htmlfooter = "</body></html>"
+        
+        tables, params = self.calculate_ek60_ts_table(info)
+
+        sup_header = tf.RowSpec(
+                        tf.ColumnSpec('', '', span=1),
+                        tf.ColumnSpec('subfoo2', 'Pulse length (&mu;s)', span=5))
+                        
+        if len(tables) == 0:
+            html = '<p>You need to select some EK60 spot frequencies '\
+                   'to get results shown here.</p>'
+        else:
+            html = ''
+
+        for freq, table in sorted(tables.iteritems()):
+            cols = [tf.ColumnSpec(x) for x in table[0]]
+            ts_row = tf.RowSpec(*cols)
+
+            # Convert TS numbers into formatted text 
+
+            for row in table:
+                itercells = row.iteritems()
+                next(itercells) # Don't want to format the sound speed column
+                for key, item in itercells:
+                    row[key] = '{:.2f}'.format(item)
+
+            lines = ts_row.makeall(table)
+            a = params['a']*2000 # convert from radius in m to diameter in mm
+            details_text = '&empty; = {0} mm, '\
+                           '&rho;<sub>1</sub> = {1[rho1]} kg/m<sup>3</sup>, '\
+                           'c<sub>1</sub> = {1[c1]} m/s, '\
+                           'c<sub>2</sub> = {1[c2]} m/s, '\
+                           '&rho; = {1[rho]:.2f} kg/m<sup>3</sup>'.format(a, params)
+            html = html + tf.HTMLTable('Sphere target strength at {} kHz'.format(freq),
+                            details_text,
+                            headers=[sup_header, ts_row]).render(lines)
+        html = htmlheader+html+htmlfooter
+        
+        outfile = open('example.html', 'wb')
+        outfile.write(html)
+        outfile.close()
+
+        info.object.ek60Dialog.html_text = html
+        info.object.ek60Dialog.edit_traits()
+        
 
     def calculate(self, info):
         """
@@ -190,6 +268,32 @@ class UIHandler(Handler):
         plt.figtext(0.02, 0.02, material_text)
         plt.draw()
 
+    def calculate_ek60_ts_table(self, info):
+        """
+        """
+        ek60_params = {}
+        ek60_params[18] = [(512, 1.73), (1024, 1.56), (2048, 1.17), (4096, 0.71), (8192, 0.38)]
+        ek60_params[38] = [(256, 3.675), (512, 3.275), (1024, 2.425), (2048, 1.448), (4096, 0.766)]
+        ek60_params[70] = [(128, 6.74), (256, 6.09), (512, 4.63), (1024, 2.83), (2048, 1.51)]
+        ek60_params[120] = [(64, 11.66), (128, 10.79), (256, 8.61), (512, 5.49), (1024, 2.99)]
+        ek60_params[200] = [(64, 18.54), (128, 15.55), (256, 10.51), (512, 5.90), (1024, 3.05)]
+        ek60_params[333] = [(64, 27.944), (128, 20.078), (256, 11.720), (512, 6.145), (1024, 3.112)]
+            
+        ss = range(1450, 1525, 5)
+
+        params = {'a': info.object.sphere_diameter/2000.0,
+                  'rho1': info.object.sphere_density,
+                  'c1': info.object.sphere_c1,
+                  'c2': info.object.sphere_c2,
+                  'rho': info.object.fluid_density}
+
+        # Only pass on the spot frequencies that we have bandwidths for
+        spot_freqs = set(info.object.spot_freqs).intersection(ek60_params.keys())
+
+        t = sphere_ts.calculate_ts_table(spot_freqs, ss, ek60_params, params)
+        
+        return t, params
+        
     def object_sphere_material_changed(self, info):
         """
         Updates the sphere material variables if the type of material is
@@ -237,7 +341,7 @@ class UIHandler(Handler):
     def close(self, info, is_ok):
         plt.close('all')
         return True
-
+   
 class SphereTSGUI(HasTraits):
     """
     Calculate and show the sphere TS using the TraitsUI framework.
@@ -286,10 +390,13 @@ class SphereTSGUI(HasTraits):
     averaging_bandwidth = Range(low=0.1, value=2.5,
                                 label='Bandwidth for averaged TS [kHz]')
 
+
     CalculateButton = Action(name='Calculate', action='calculate')
     AboutButton = Action(name='About', action='show_about')
+    EK60Button = Action(name='EK60 tables', action='show_ek60_ts')
 
     aboutDialog = AboutDialog()
+    ek60Dialog = EK60Dialog()
 
     view = View(
         Group(
@@ -326,7 +433,7 @@ class SphereTSGUI(HasTraits):
             ),
         resizable=True,
         title='Sphere TS calculator',
-        buttons=[AboutButton, CalculateButton, CancelButton],
+        buttons=[EK60Button, AboutButton, CalculateButton, CancelButton],
         handler=UIHandler())
 
 if __name__ == "__main__":
