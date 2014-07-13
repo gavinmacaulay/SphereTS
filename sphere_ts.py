@@ -195,6 +195,7 @@ def calculate_ts_table(spot_freqs, ss, avg_params, params):
             column_headers = ['Sound speed (m/s)'] + [str(x[0]) for x in p]
             table_at_freq.append(collections.OrderedDict(zip(column_headers, ts_row)))
         tables[freq] = table_at_freq
+
     return tables
 
 def material_properties():
