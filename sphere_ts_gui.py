@@ -67,11 +67,11 @@ class EK60Dialog(HasTraits):
     """
     """
     html_text = Str()
-    PDFSaveButton = Action(name='Save as PDF', action='save_as_pdf')
+
     view = View(Item('html_text',
                      editor=HTMLEditor(format_text=False), show_label=False), 
                      title='EK60',
-                     buttons=[PDFSaveButton, OKButton],
+                     buttons=[OKButton],
                      resizable=True)
 
 class UIHandler(Handler):
@@ -107,11 +107,7 @@ class UIHandler(Handler):
         
         htmlfooter = "</body></html>"
         
-        tables, params = self.calculate_ek60_ts_table(info)
-
-        sup_header = tf.RowSpec(
-                     tf.ColumnSpec('', '', span=1),
-                     tf.ColumnSpec('subfoo2', 'Pulse length (&mu;s)', span=5))
+        tables, params, ek60_params = self.calculate_ek60_ts_table(info)
 
         if len(tables) == 0:
             html = '<p>You need to select some EK60 spot frequencies '\
@@ -120,11 +116,21 @@ class UIHandler(Handler):
             html = ''
 
         for freq, table in sorted(tables.iteritems()):
+            # A header row with the global column labels
+            sup_header = tf.RowSpec(
+                         tf.ColumnSpec('', '', span=1),
+                         tf.ColumnSpec('', 'Pulse length (&mu;s), bandwidth (kHz)', 
+                                       span=len(table[0])-1))
+            
+            # A header row with the bandwidths
+            bw_cols = [tf.ColumnSpec(x[1]) for x in ek60_params[freq]]
+            suf_header = tf.RowSpec(tf.ColumnSpec('',''), *bw_cols)
+
+            # The columns definiton for the actual data
             cols = [tf.ColumnSpec(x) for x in table[0]]
             ts_row = tf.RowSpec(*cols)
 
             # Convert TS numbers into formatted text 
-
             for row in table:
                 itercells = row.iteritems()
                 next(itercells) # Don't want to format the sound speed column
@@ -133,19 +139,20 @@ class UIHandler(Handler):
 
             lines = ts_row.makeall(table)
             a = params['a']*2000 # convert from radius in m to diameter in mm
-            details_text = '&empty; = {0} mm, '\
+            title_text = 'Sphere target strength at {} kHz'.format(freq)
+            details_text = '<p>'\
+                           '&empty; = {0} mm, '\
                            '&rho;<sub>1</sub> = {1[rho1]} kg/m<sup>3</sup>, '\
                            'c<sub>1</sub> = {1[c1]} m/s, '\
                            'c<sub>2</sub> = {1[c2]} m/s, '\
-                           '&rho; = {1[rho]:.2f} kg/m<sup>3</sup>'.format(a, params)
-            html = html + tf.HTMLTable('Sphere target strength at {} kHz'.format(freq),
+                           '&rho; = {1[rho]:.2f} kg/m<sup>3</sup>'\
+                           '</p>'.format(a, params)
+            html = html + tf.HTMLTable(title_text,
                             details_text,
-                            headers=[sup_header, ts_row]).render(lines)
-        html = htmlheader+html+htmlfooter
-        
-        outfile = open('example.html', 'wb')
-        outfile.write(html)
-        outfile.close()
+                            headers=[sup_header, ts_row, suf_header]).render(lines)
+                            
+                            
+        html = htmlheader + html + htmlfooter
 
         info.object.ek60Dialog.html_text = html
         info.object.ek60Dialog.edit_traits()
@@ -290,7 +297,7 @@ class UIHandler(Handler):
 
         t = sphere_ts.calculate_ts_table(spot_freqs, ss, ek60_params, params)
         
-        return t, params
+        return t, params, ek60_params
         
     def object_sphere_material_changed(self, info):
         """
