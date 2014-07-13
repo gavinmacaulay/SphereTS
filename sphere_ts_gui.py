@@ -94,14 +94,12 @@ class UIHandler(Handler):
         <head>
         <title>Sample table</title>
         <style type="text/css">
-        body { font-family: Helvetica,Arial,FreeSans; }
-        table.reporttable { border-style: solid; border-width: 1px; border-collapse: collapse;}
-        table.reporttable td { padding: 5px 5px 3px 3px;}
-        table.reporttable .odd td { background-color: #eee; }
-        table.reporttable .even td { background-color: #bbb; }
-        table.reporttable th { background-color: blue; color: white; }
-        table.reporttable td.cell_bold { font-weight: bold; }
-        table.reporttable td.cell_money { text-align: right; font-family: monospace; }
+         body { font-family: Helvetica,Arial,FreeSans; }
+         table.reporttable { border-collapse: collapse;}
+         table.reporttable td { color: #00000; border: 1px solid #98bf21; padding: 3px 7px 2px 7px;}
+         table.reporttable .odd td { background-color: white; }
+         table.reporttable .even td { background-color: #EAF2D3; }
+         table.reporttable th { background-color: #A7C942; color: #ffffff; }
         </style>
         </head>
         <body>
@@ -112,12 +110,12 @@ class UIHandler(Handler):
         tables, params = self.calculate_ek60_ts_table(info)
 
         sup_header = tf.RowSpec(
-                        tf.ColumnSpec('', '', span=1),
-                        tf.ColumnSpec('subfoo2', 'Pulse length (&mu;s)', span=5))
-                        
+                     tf.ColumnSpec('', '', span=1),
+                     tf.ColumnSpec('subfoo2', 'Pulse length (&mu;s)', span=5))
+
         if len(tables) == 0:
             html = '<p>You need to select some EK60 spot frequencies '\
-                   'to get results shown here.</p>'
+                   'to get results to show here.</p>'
         else:
             html = ''
 
