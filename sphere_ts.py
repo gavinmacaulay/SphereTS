@@ -31,6 +31,7 @@ from __future__ import print_function
 
 import math
 import cmath
+import collections
 
 from scipy.special import jv, yv
 import numpy as np
@@ -172,6 +173,29 @@ def freq_response(fstart, fstop, a, c, c1, c2, rho, rho1, fstep=100):
         ts[i] = sphere_ts(freq, a, c, c1, c2, rho, rho1)
 
     return f, ts
+    
+def calculate_ts_table(spot_freqs, ss, avg_params, params):
+    """
+    """
+    tables = dict()
+    for freq in spot_freqs:
+        p = avg_params.get(freq, list())
+        table_at_freq = list()
+        for c in ss:
+            params['c'] = c
+            ts_row = [c]
+            for tau, bw in p:
+                params['fstart'] = (freq - bw/2)*1e3
+                params['fstop'] = (freq + bw/2)*1e3
+                params['fstep'] = bw/20*1e3
+
+                f, ts = freq_response(**params)
+                ts_avg = 10.0*np.log10(np.average(np.power(10.0, ts/10.0)))
+                ts_row.append(np.asscalar(ts_avg))
+            column_headers = ['Sound speed (m/s)'] + [str(x[0]) for x in p]
+            table_at_freq.append(collections.OrderedDict(zip(column_headers, ts_row)))
+        tables[freq] = table_at_freq
+    return tables
 
 def material_properties():
     """
