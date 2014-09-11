@@ -119,7 +119,7 @@ class UIHandler(Handler):
             # A header row with the global column labels
             sup_header = tf.RowSpec(
                          tf.ColumnSpec('', '', span=1),
-                         tf.ColumnSpec('', 'Pulse length (&mu;s), bandwidth (kHz)', 
+                         tf.ColumnSpec('', 'Pulse length (&mu;s)/bandwidth (kHz)', 
                                        span=len(table[0])-1))
             
             # A header row with the bandwidths
@@ -142,10 +142,10 @@ class UIHandler(Handler):
             title_text = 'Sphere target strength at {} kHz'.format(freq)
             details_text = '<p>'\
                            '&empty; = {0} mm, '\
-                           '&rho;<sub>1</sub> = {1[rho1]} kg/m<sup>3</sup>, '\
-                           'c<sub>1</sub> = {1[c1]} m/s, '\
-                           'c<sub>2</sub> = {1[c2]} m/s, '\
-                           '&rho; = {1[rho]:.2f} kg/m<sup>3</sup>'\
+                           '&rho;<sub>w</sub> = {1[rho]:.1f} kg/m<sup>3</sup>'\
+                           '&rho;<sub>s</sub> = {1[rho1]} kg/m<sup>3</sup>, '\
+                           'c<sub>c</sub> = {1[c1]} m/s, '\
+                           'c<sub>s</sub> = {1[c2]} m/s, '\
                            '</p>'.format(a, params)
             html = html + tf.HTMLTable(title_text,
                             details_text,
@@ -265,9 +265,9 @@ class UIHandler(Handler):
                                facecolor='w', edgecolor='k'))
 
         # Put the material properties on the plot too.
-        material_text = '$\\rho = {:.1f} \/ kg/m^3$, $c = {:.1f} \/ m/s$, '\
-                        '$\\rho_1 = {:.1f}$, $c_1 = {:.1f}$, $c_2 = {:.1f}$, '\
-                        '$bw = {:.2f} \/ kHz$'\
+        material_text = '$\\rho_w = {:.1f} \/ kg/m^3$, $c_w = {:.1f} \/ m/s$, '\
+                        '$\\rho_s = {:.1f}$, $c_c = {:.1f}$, $c_s = {:.1f}$, '\
+                        '$b_f = {:.2f} \/ kHz$'\
                         .format(params['rho'], params['c'], params['rho1'], \
                             params['c1'], params['c2'], bw/1e3)
         plt.figtext(0.02, 0.02, material_text)
