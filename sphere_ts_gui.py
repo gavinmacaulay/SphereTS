@@ -65,6 +65,8 @@ class AboutDialog(HasTraits):
 
 class EK60Dialog(HasTraits):
     """
+    This class implements a dialog box that displays bandwidth averaged sphere
+    TS estimates.
     """
     html_text = Str()
 
@@ -87,7 +89,15 @@ class UIHandler(Handler):
         
     def show_ek60_ts(self, info):
         """
+        Calculates sphere TS estimates at specified frequencies over a range of
+        sound speeds averaged over the receive bandwidths used by the Simrad
+        EK60 echosounders. 
+        
+        The results are presented in table form in a separate dialog box.
         """
+
+        # The dialog box displays HTML. We use the TableFactory import to do 
+        # that, but the appearance is controlled by some simple CSS...
         htmlheader = """\
         <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
         <html>
@@ -138,7 +148,7 @@ class UIHandler(Handler):
                     row[key] = '{:.2f}'.format(item)
 
             lines = ts_row.makeall(table)
-            a = params['a']*2000 # convert from radius in m to diameter in mm
+            a = params['a']*2000.0 # convert from radius in m to diameter in mm
             title_text = 'Sphere target strength at {} kHz'.format(freq)
             details_text = '<p>'\
                            '&empty; = {0} mm, '\
@@ -275,6 +285,8 @@ class UIHandler(Handler):
 
     def calculate_ek60_ts_table(self, info):
         """
+        Calculates bandwidth averaged sphere TS at spot frequencies. The
+        bandwidths are the same as those used by the Simrad EK60 echosounder.
         """
         ek60_params = {}
         ek60_params[18] = [(512, 1.73), (1024, 1.56), (2048, 1.17), (4096, 0.71), (8192, 0.38)]
