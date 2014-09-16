@@ -176,6 +176,7 @@ def freq_response(fstart, fstop, a, c, c1, c2, rho, rho1, fstep=100):
     
 def calculate_ts_table(spot_freqs, ss, avg_params, params):
     """
+    Calculates bandwidth averaged sphere TS estimates.
     """
     tables = dict()
     for freq in spot_freqs:
