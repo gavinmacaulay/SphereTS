@@ -202,6 +202,8 @@ class UIHandler(Handler):
 
         # Do a running mean of length N.
         N = round(bw/fstep)
+        # Note that this convolution somehow gives results that are fstep/2 too 
+        # high in frequency, so when they are plotted, we adjust for that.
         ts_avg = 10*np.log10(np.convolve(np.power(10.0, ts/10.0),
                                          np.ones((N,))/N, mode='same'))
 
@@ -217,7 +219,7 @@ class UIHandler(Handler):
         plt.figure()
         plt.gca().set_position((.1, .15, .8, .75))
         plt.plot(f/1e3, ts, linewidth=1.5, color='#1b9e77')
-        plt.plot(f/1e3, ts_avg, linewidth=1.5, color='#d95f02')
+        plt.plot((f-fstep/2.)/1e3, ts_avg, linewidth=1.5, color='#d95f02')
         plt.xlabel('Frequency (kHz)')
         plt.ylabel('TS (dB re 1 m$^2$)')
         plt.xlim(fstart/1e3, fstop/1e3)
