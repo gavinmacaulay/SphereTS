@@ -215,7 +215,7 @@ def material_properties():
             'Stainless steel':  {'c1': 5610.0, 'c2': 3120.0, 'rho1':  7800.0},
             'Alumnium':         {'c1': 6260.0, 'c2': 3080.0, 'rho1':  2700.0}}
 
-def water_properties(sp, t, p, **kwargs):
+def water_properties(sp, t, p, lon=0.0, lat=0.0):
     """
     Calculates seawater density and sound speed using the TEOS-10 equations.
 
@@ -231,12 +231,12 @@ def water_properties(sp, t, p, **kwargs):
     Returns:
         :c: speed of sound in water [m/s]
         :rho: density of water [kg/m^3]
-    """
+        
+    Notes:
+        The accuracy of sound speed and density that we need is such that it 
+        doesn't matter what latitude and longitude is used.
 
-    # The accuracy of sound speed and density that we need is such that it 
-    # doesn't matter what latitude and longitude is used.
-    lon = kwargs.get('lon', 0.0)
-    lat = kwargs.get('lat', 0.0)
+    """
 
     sa = gsw.SA_from_SP(sp, p, lon, lat)
     ct = gsw.CT_from_t(sa, t, p)
