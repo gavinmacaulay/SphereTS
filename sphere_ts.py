@@ -9,7 +9,7 @@
     of temperature, salinity, and depth.
 
 
-    Copyright 2014 Gavin Macaulay
+    Copyright 2018 Gavin Macaulay
 
     This file is part of SphereTS.
 
@@ -27,7 +27,6 @@
     along with SphereTS.  If not, see <http://www.gnu.org/licenses/>.
 """
 from __future__ import division
-from __future__ import print_function
 
 import math
 import cmath
@@ -235,7 +234,6 @@ def water_properties(sp, t, p, lon=0.0, lat=0.0):
     Notes:
         The accuracy of sound speed and density that we need is such that it 
         doesn't matter what latitude and longitude is used.
-
     """
 
     sa = gsw.SA_from_SP(sp, p, lon, lat)
