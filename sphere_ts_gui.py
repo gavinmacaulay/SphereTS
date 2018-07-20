@@ -26,9 +26,6 @@
 #
 # Add unittests
 
-from __future__ import division
-from __future__ import print_function
-
 import sphere_ts
 
 import matplotlib.pyplot as plt
@@ -40,8 +37,6 @@ from traits.api import HasTraits, Str, List, Bool, Range
 from traitsui.api import View, Item, Group, Handler
 from traitsui.api import CheckListEditor, CSVListEditor, EnumEditor, HTMLEditor
 from traitsui.menu import Action, CancelButton, OKButton
-
-import TableFactory as tf
 
 class AboutDialog(HasTraits):
     """
@@ -96,8 +91,7 @@ class UIHandler(Handler):
         The results are presented in table form in a separate dialog box.
         """
 
-        # The dialog box displays HTML. We use the TableFactory import to do 
-        # that, but the appearance is controlled by some simple CSS...
+        # The dialog box displays HTML. the appearance is controlled by some simple CSS...
         htmlheader = """\
         <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
         <html>
@@ -114,7 +108,7 @@ class UIHandler(Handler):
         </head>
         <body>
         """
-        
+
         htmlfooter = "</body></html>"
         
         tables, params, ek60_params = self.calculate_ek60_ts_table(info)
@@ -125,43 +119,40 @@ class UIHandler(Handler):
         else:
             html = ''
 
-        for freq, table in sorted(tables.iteritems()):
-            # A header row with the global column labels
-            sup_header = tf.RowSpec(
-                         tf.ColumnSpec('', '', span=1),
-                         tf.ColumnSpec('', 'Pulse length (&mu;s)/bandwidth (kHz)', 
-                                       span=len(table[0])-1))
-            
+        for freq, table in sorted(tables.items()):
             # A header row with the bandwidths
-            bw_cols = [tf.ColumnSpec(x[1]) for x in ek60_params[freq]]
-            suf_header = tf.RowSpec(tf.ColumnSpec('',''), *bw_cols)
+            tableBody = '<tr><th></th><th colspan="5">Bandwidth (kHz); Pulse duration (&mu;s)</th></tr>'
+            tableBody += '<tr><th></th>'
+            tableBody += ''.join(['<th>' + str(x[1]) + '</th>' for x in ek60_params[freq]])
+            tableBody += '</tr>'
 
-            # The columns definiton for the actual data
-            cols = [tf.ColumnSpec(x) for x in table[0]]
-            ts_row = tf.RowSpec(*cols)
+            # A header row for the pulse duraions
+            tableBody += '<tr>'
+            tableBody += ''.join(['<th>' + str(x) + '</th>' for x in table[0]])
+            tableBody += '</tr>'
 
-            # Convert TS numbers into formatted text 
+            # The rows of sound speed and TS
             for row in table:
-                itercells = row.iteritems()
-                next(itercells) # Don't want to format the sound speed column
-                for key, item in itercells:
-                    row[key] = '{:.2f}'.format(item)
+                tableBody += '<tr><td>{:.0f}</td>'.format(row['Sound speed (m/s)'])
+                rowIter = iter(row.items()) 
+                next(rowIter)
+                tableBody += ''.join(['<td>' + '{:.2f}'.format(item) + '</td>' for key, item in rowIter])
+                tableBody += '</tr>'
 
-            lines = ts_row.makeall(table)
             a = params['a']*2000.0 # convert from radius in m to diameter in mm
-            title_text = 'Sphere target strength at {} kHz'.format(freq)
+            
             details_text = '<p>'\
                            '&empty; = {0} mm, '\
-                           '&rho;<sub>w</sub> = {1[rho]:.1f} kg/m<sup>3</sup>'\
+                           '&rho;<sub>w</sub> = {1[rho]:.1f} kg/m<sup>3</sup>, '\
                            '&rho;<sub>s</sub> = {1[rho1]} kg/m<sup>3</sup>, '\
                            'c<sub>c</sub> = {1[c1]} m/s, '\
-                           'c<sub>s</sub> = {1[c2]} m/s, '\
+                           'c<sub>s</sub> = {1[c2]} m/s'\
                            '</p>'.format(a, params)
-            html = html + tf.HTMLTable(title_text,
-                            details_text,
-                            headers=[sup_header, ts_row, suf_header]).render(lines)
-                            
-                            
+
+            title_text = '<h1>Sphere target strength at {} kHz</h1>'.format(freq)
+            html += title_text + details_text + '<table class="reporttable">' + tableBody + '</table>'
+            
+
         html = htmlheader + html + htmlfooter
 
         info.object.ek60Dialog.html_text = html
