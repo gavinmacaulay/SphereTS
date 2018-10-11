@@ -348,9 +348,10 @@ class UIHandler(Handler):
         if not info.object.use_another_material:
             self.object_sphere_material_changed(info)
 
-    def close(self, info, is_ok):
+    def close(self, info):
         plt.close('all')
-        return True
+        info.ui.dispose()
+        exit()
    
 class SphereTSGUI(HasTraits):
     """
@@ -404,6 +405,7 @@ class SphereTSGUI(HasTraits):
     CalculateButton = Action(name='Calculate', action='calculate')
     AboutButton = Action(name='About', action='show_about')
     EK60Button = Action(name='EK60 tables', action='show_ek60_ts')
+    CloseButton = Action(name='Close', action='close')
 
     aboutDialog = AboutDialog()
     ek60Dialog = EK60Dialog()
@@ -443,7 +445,7 @@ class SphereTSGUI(HasTraits):
             ),
         resizable=True,
         title='Sphere TS calculator',
-        buttons=[EK60Button, AboutButton, CalculateButton, CancelButton],
+        buttons=[EK60Button, AboutButton, CalculateButton, CloseButton],
         handler=UIHandler())
 
 if __name__ == "__main__":
