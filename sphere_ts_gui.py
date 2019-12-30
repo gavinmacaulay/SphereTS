@@ -36,7 +36,7 @@ import numpy as np
 from traits.api import HasTraits, Str, List, Bool, Range
 from traitsui.api import View, Item, Group, Handler
 from traitsui.api import CheckListEditor, CSVListEditor, EnumEditor, HTMLEditor
-from traitsui.menu import Action, CancelButton, OKButton
+from traitsui.menu import Action, OKButton
 
 class AboutDialog(HasTraits):
     """
