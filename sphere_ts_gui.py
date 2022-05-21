@@ -26,6 +26,7 @@
 #
 # Add unittests
 
+import sys
 import sphere_ts
 
 import matplotlib.pyplot as plt
@@ -351,7 +352,7 @@ class UIHandler(Handler):
     def close(self, info):
         plt.close('all')
         info.ui.dispose()
-        exit()
+        sys.exit(0)
    
 class SphereTSGUI(HasTraits):
     """
@@ -369,37 +370,30 @@ class SphereTSGUI(HasTraits):
     spot_freqs = [12, 18, 38, 50, 70, 120, 200, 333, 420]
     spot_freqs = list(zip(spot_freqs, list(map(str, spot_freqs))))
 
-    extra_spot_freqs = List(Range(low=0., exclude_low=True),
+    extra_spot_freqs = List(Range(low=0., high=1000., exclude_low=True),
                             desc='comma separated frequencies [kHz]',
                             label='Additional spot freqs [kHz]')
 
     sphere_material = Str(params['material'], label='Material')
-    sphere_diameter = Range(low=0., value=params['a']*2*1000.0,
-                            exclude_low=True, label='Diameter [mm]')
-    sphere_density = Range(low=0., value=params['rho1'], exclude_low=True,
-                           label='Density [kg/m^3]')
-    sphere_c1 = Range(low=0., value=params['c1'], exclude_low=True,
-                      label='Longitudal sound speed [m/s]')
-    sphere_c2 = Range(low=0., value=params['c2'], exclude_low=True,
-                      label='Transverse sound speed [m/s]')
+    sphere_diameter = Range(low=0., high=1e3, value=params['a']*2*1000.0, exclude_low=True, label='Diameter [mm]')
+    sphere_density = Range(low=0., high=1e6, value=params['rho1'], exclude_low=True, label='Density [kg/m^3]')
+    sphere_c1 = Range(low=0., high=1e4, value=params['c1'], exclude_low=True, label='Longitudal sound speed [m/s]')
+    sphere_c2 = Range(low=0., high=1e4, value=params['c2'], exclude_low=True, label='Transverse sound speed [m/s]')
 
     use_ctd = Bool(True)
     use_another_material = Bool(False, label='Another material')
 
-    fluid_c = Range(low=0., value=params['c'], exclude_low=True,
-                    label='Sound speed in water [m/s]')
-    fluid_density = Range(low=0., value=params['rho'], exclude_low=True,
-                          label='Density of water [kg/m^3]')
+    fluid_c = Range(low=0., high=1e4, value=params['c'], exclude_low=True, label='Sound speed in water [m/s]')
+    fluid_density = Range(low=0., high=1e4, value=params['rho'], exclude_low=True, label='Density of water [kg/m^3]')
 
     fluid_temperature = Range(-2.0, 60, 10.0, label='Temperature [degC]')
     fluid_salinity = Range(0.0, 60.0, 35.0, label='Salinity [PSU]')
     fluid_depth = Range(0.0, 15000.0, 30.0, label='Depth [m]')
 
-    freq_start = Range(low=0.0, value=12., label='Start frequency [kHz]')
-    freq_end = Range(low=0.0, value=200., label='End frequency [kHz]')
+    freq_start = Range(low=0.0, high=1000.0, value=12., exclude_low=True, label='Start frequency [kHz]')
+    freq_end = Range(low=0.0, high=1000.0, value=200., exclude_low=True, label='End frequency [kHz]')
 
-    averaging_bandwidth = Range(low=0.1, value=2.5,
-                                label='Bandwidth for averaged TS [kHz]')
+    averaging_bandwidth = Range(low=0.0, high=1000.0, value=2.5, exclude_low=True, label='Bandwidth for averaged TS [kHz]')
 
 
     CalculateButton = Action(name='Calculate', action='calculate')
@@ -413,14 +407,14 @@ class SphereTSGUI(HasTraits):
     view = View(
         Group(
             Group(
-                Item('sphere_diameter'),
+                Item('sphere_diameter', style='text'),
                 Item('sphere_material', style='custom',
                      enabled_when='not use_another_material',
                      editor=EnumEditor(values=list(m.keys()), cols=2)),
                 Item('use_another_material'),
-                Item('sphere_density', enabled_when='use_another_material'),
-                Item('sphere_c1', enabled_when='use_another_material'),
-                Item('sphere_c2', enabled_when='use_another_material'),
+                Item('sphere_density', enabled_when='use_another_material', style='text'),
+                Item('sphere_c1', enabled_when='use_another_material', style='text'),
+                Item('sphere_c2', enabled_when='use_another_material', style='text'),
                 label='Sphere properties', show_border=True),
             '10', # some extra space
             Group(
@@ -428,9 +422,8 @@ class SphereTSGUI(HasTraits):
                 Item('fluid_temperature', enabled_when='use_ctd', style='text'),
                 Item('fluid_salinity', enabled_when='use_ctd', style='text'),
                 Item('fluid_depth', enabled_when='use_ctd', style='text'),
-                Item('fluid_c', enabled_when='not use_ctd', format_str='%.1f'),
-                Item('fluid_density', enabled_when='not use_ctd',
-                     format_str='%.1f'),
+                Item('fluid_c', enabled_when='not use_ctd', style='text', format_str='%.1f'),
+                Item('fluid_density', enabled_when='not use_ctd', style='text', format_str='%.1f'),
                 label='Environmental properties', show_border=True),
             '10', # some extra space
             Group(
@@ -438,9 +431,9 @@ class SphereTSGUI(HasTraits):
                      label='Spot frequencies [kHz]',
                      editor=CheckListEditor(values=spot_freqs, cols=3)),
                 Item('extra_spot_freqs', editor=CSVListEditor()),
-                Item('freq_start'),
-                Item('freq_end'),
-                Item('averaging_bandwidth'),
+                Item('freq_start', style='text'),
+                Item('freq_end', style='text'),
+                Item('averaging_bandwidth', style='text'),
                 label='Frequencies', show_border=True)
             ),
         resizable=True,
