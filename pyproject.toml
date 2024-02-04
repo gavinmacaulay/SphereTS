@@ -1,0 +1,36 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sphereTS"
+version = "1.0.0"
+keywords = ["acoustic", "sphere", "calibration", "fisheries"]
+license = {file = "COPYING.txt"}
+authors = [
+  { name="Gavin Macaulay", email="gavin@macaulay.co.nz" },
+]
+description = "Calculates the acoustic target strength of an elastic sphere immersed in a fluid"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+	"traits",
+	"traitsui",
+	"numpy",
+	"scipy",
+	"gsw",
+	"matplotlib",
+]
+
+classifiers = [
+    'Development Status :: 4 - Beta',
+    'Intended Audience :: Science/Research',
+    'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+    'Operating System :: OS Independent',
+    'Programming Language :: Python :: 3',
+    'Topic :: Scientific/Engineering',
+]
+
+[project.urls]
+Homepage = "https://github.com/gavinmacaulay/SphereTS"
+Issues = "https://github.com/gavinmacaulay/SphereTS/issues"
