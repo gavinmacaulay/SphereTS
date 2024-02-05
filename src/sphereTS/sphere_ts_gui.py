@@ -27,7 +27,7 @@
 # Add unittests
 
 import sys
-import sphere_ts
+from .sphere_ts import freq_response, calculate_ts_table, material_properties, water_properties
 
 import matplotlib.pyplot as plt
 import math
@@ -190,7 +190,7 @@ class UIHandler(Handler):
                   'c': info.object.fluid_c,
                   'rho': info.object.fluid_density}
 
-        f, ts = sphere_ts.freq_response(**params)
+        f, ts = freq_response(**params)
 
         # Do a running mean of length N.
         N = round(bw/fstep)
@@ -246,7 +246,7 @@ class UIHandler(Handler):
                 params['fstart'] = 1
                 average_truncated = True
 
-            ff, ts = sphere_ts.freq_response(**params)
+            ff, ts = freq_response(**params)
             avg_ts = 10.0*np.log10(np.average(np.power(10.0, ts/10.0)))
 
             plt.plot(f, avg_ts, 'o')
@@ -301,7 +301,7 @@ class UIHandler(Handler):
         # Only pass on the spot frequencies that we have bandwidths for
         spot_freqs = set(info.object.spot_freqs).intersection(ek60_params.keys())
 
-        t = sphere_ts.calculate_ts_table(spot_freqs, ss, ek60_params, params)
+        t = calculate_ts_table(spot_freqs, ss, ek60_params, params)
         
         return t, params, ek60_params
         
@@ -310,7 +310,7 @@ class UIHandler(Handler):
         Updates the sphere material variables if the type of material is
         changed.
         """
-        m = sphere_ts.material_properties()
+        m = material_properties()
 
         s = m[info.object.sphere_material]
         info.object.sphere_density = s['rho1']
@@ -331,9 +331,9 @@ class UIHandler(Handler):
 
     def update_fluid_properties(self, info):
         """ Recalculates the fluid properties."""
-        c, rho = sphere_ts.water_properties(info.object.fluid_salinity,
-                                            info.object.fluid_temperature,
-                                            info.object.fluid_depth)
+        c, rho = water_properties(info.object.fluid_salinity,
+                                  info.object.fluid_temperature,
+                                  info.object.fluid_depth)
         info.object.fluid_c = c
         info.object.fluid_density = rho
 
@@ -360,7 +360,7 @@ class SphereTSGUI(HasTraits):
     """
 
     default_material = 'Tungsten carbide'
-    m = sphere_ts.material_properties()
+    m = material_properties()
     params = m[default_material]
     params['material'] = default_material
     params['a'] = 0.0381/2.0
