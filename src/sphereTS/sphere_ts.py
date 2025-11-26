@@ -191,7 +191,7 @@ def calculate_ts_table(spot_freqs, ss, avg_params, params):
 
                 f, ts = freq_response(**params)
                 ts_avg = 10.0*np.log10(np.average(np.power(10.0, ts/10.0)))
-                ts_row.append(np.asscalar(ts_avg))
+                ts_row.append(ts_avg)
             column_headers = ['Sound speed (m/s)'] + [str(x[0]) for x in p]
             table_at_freq.append(collections.OrderedDict(zip(column_headers, ts_row)))
         tables[freq] = table_at_freq
