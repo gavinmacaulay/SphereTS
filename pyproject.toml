@@ -16,12 +16,13 @@ description = "Calculates the acoustic target strength of an elastic sphere imme
 readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
-	"traits",
-	"traitsui",
-	"numpy",
-	"scipy",
-	"gsw",
-	"matplotlib",
+  "traits",
+  "traitsui",
+  "numpy",
+  "scipy",
+  "gsw",
+  "matplotlib",
+  "PyQt5"
 ]
 
 classifiers = [
