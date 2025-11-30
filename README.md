@@ -2,22 +2,32 @@
 
 The sphereTS package calculates the acoustic target strength (TS) of elastic spheres immersed in a fluid. It is intended for calculating the TS of the spheres used for calibrating echosounders used for quantitative estimates of marine organism backscatter.
 
-There are two ways to use this package:
+Install from pypi:
 
-1. Call the functions in the sphereTS.py file from your code and use the results as required
-2. Run sphereTSGUI.py and use the GUI to generate sphere TS estimates
+```
+pip install spherets
+```
 
-## Requirements
+and run the GUI from a termainal with `spherets`. 
 
-These packages are required for the non-GUI part:
+The underlying target strength functions are also available, for example:
 
-- NumPy
-- SciPy
-- GSW
+```py
+import matplotlib.pyplot as plt
+from sphereTS import sphere_ts as sts
 
-and these for the GUI part:
+wc = sts.material_properties()['Tungsten carbide']
 
-- Matplotlib
-- traits
-- traitsUI
+c = 1470  # [m/s] sound speed in water
+rho = 1027  # [kg/m^3] density of water
+a = 0.0381/2  # [m] radius of sphere
 
+ts = sts.sphere_ts(38e3, a, c, wc['c1'], wc['c2'], rho, wc['rho1'])
+
+print(ts)
+
+f, tsf = sts.freq_response(12e3, 200e3, a, c, 
+                           wc['c1'], wc['c2'], rho, wc['rho1'])
+
+plt.plot(f/1e3, tsf)
+```
