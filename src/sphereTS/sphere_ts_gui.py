@@ -20,8 +20,6 @@
 
 # TODO:
 #
-# Package as a windows executable
-#
 # Compare results to Chu's program
 #
 # Add unittests
@@ -101,7 +99,7 @@ class UIHandler(Handler):
         <style type="text/css">
          body { font-family: Helvetica,Arial,FreeSans; }
          table.reporttable { border-collapse: collapse;}
-         table.reporttable td { color: #00000; border: 1px solid #98bf21; padding: 3px 7px 2px 7px;}
+         table.reporttable td { color: #000000; border: 1px solid #98bf21; padding: 3px 7px 2px 7px;}
          table.reporttable .odd td { background-color: white; }
          table.reporttable .even td { background-color: #EAF2D3; }
          table.reporttable th { background-color: #A7C942; color: #ffffff; }
@@ -269,9 +267,9 @@ class UIHandler(Handler):
                                facecolor='w', edgecolor='k'))
 
         # Put the material properties on the plot too.
-        material_text = '$\\rho_w = {:.1f} \/ kg/m^3$, $c_w = {:.1f} \/ m/s$, '\
+        material_text = '$\\rho_w = {:.1f} \\; kg/m^3$, $c_w = {:.1f} \\; m/s$, '\
                         '$\\rho_s = {:.1f}$, $c_c = {:.1f}$, $c_s = {:.1f}$, '\
-                        '$b_f = {:.2f} \/ kHz$'\
+                        '$b_f = {:.2f} \\; kHz$'\
                         .format(params['rho'], params['c'], params['rho1'], \
                             params['c1'], params['c2'], bw/1e3)
         plt.figtext(0.02, 0.02, material_text)
@@ -441,6 +439,11 @@ class SphereTSGUI(HasTraits):
         buttons=[EK60Button, AboutButton, CalculateButton, CloseButton],
         handler=UIHandler())
 
-if __name__ == "__main__":
+
+def main():
     gui = SphereTSGUI()
     gui.configure_traits()
+
+
+if __name__ == "__main__":
+    main()
