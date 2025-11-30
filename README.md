@@ -1,10 +1,14 @@
 # Sphere target strength calculator
 
+[![Static badge](https://img.shields.io/pypi/v/spherets.svg)](https://pypi.org/project/spherets/)
+[![python](https://img.shields.io/pypi/pyversions/spherets.svg?logo=python&logoColor=white)](https://pypi.org/project/spherets/)
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/gavinmacaulay/spherets/publish-to-pypi.yml)](https://github.com/gavinmacaulay/spherets/actions/workflows/publish-to-pypi.yml)
+
 The sphereTS package calculates the acoustic target strength (TS) of elastic spheres immersed in a fluid. It is intended for calculating the TS of the spheres used for calibrating echosounders used for quantitative estimates of marine organism backscatter.
 
 Install from pypi:
 
-```
+```bash
 pip install spherets
 ```
 
