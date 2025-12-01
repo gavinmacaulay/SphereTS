@@ -12,7 +12,7 @@ Install from pypi:
 pip install spherets
 ```
 
-and run the GUI from a termainal (type `spherets`) to get the main window:
+and run the GUI from a terminal (type `spherets`) to get the main window:
 
 ![main](docs/main%20screen.png "Main screen")
 
