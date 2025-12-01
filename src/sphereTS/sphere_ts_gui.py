@@ -25,6 +25,7 @@
 # Add unittests
 
 import sys
+from pathlib import Path
 from .sphere_ts import freq_response, calculate_ts_table, material_properties, water_properties
 
 import matplotlib.pyplot as plt
@@ -44,10 +45,11 @@ class AboutDialog(HasTraits):
     html-formatted text.
     """
 
-    helpFile = 'about.html'
+    helpFile = Path(__file__).parent/'docs'/'about.html'
     about_text = Str()
     view = View(Item('about_text', editor=HTMLEditor(), show_label=False),
                 resizable=True, title='About',
+                width=500, height=700,
                 buttons=[OKButton])
 
     def load_help_text(self):
@@ -67,6 +69,7 @@ class EK60Dialog(HasTraits):
     view = View(Item('html_text',
                      editor=HTMLEditor(format_text=False), show_label=False), 
                      title='EK60',
+                     width=500, height=700,
                      buttons=[OKButton],
                      resizable=True)
 

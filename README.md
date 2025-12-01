@@ -12,7 +12,13 @@ Install from pypi:
 pip install spherets
 ```
 
-and run the GUI from a termainal with `spherets`. 
+and run the GUI from a termainal (type `spherets`) to get the main window:
+
+![main](docs/main%20screen.png "Main screen")
+
+TS values are shown in a separate window:
+
+![results](docs/plot%20screen.png "Results window")
 
 The underlying target strength functions are also available, for example:
 

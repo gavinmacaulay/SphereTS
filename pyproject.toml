@@ -5,6 +5,12 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/sphereTS"]
 
+[tool.hatch.build.targets.sdist.force-include]
+"docs" = "docs"
+
+[tool.hatch.build.targets.wheel.force-include]
+"docs" = "sphereTS/docs"
+
 [project]
 name = "sphereTS"
 keywords = ["acoustic", "sphere", "calibration", "fisheries"]
