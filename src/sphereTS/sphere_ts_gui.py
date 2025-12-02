@@ -44,7 +44,8 @@ class AboutDialog(HasTraits):
 
     helpFile = Path(__file__).parent/'docs'/'about.html'
     about_text = Str()
-    view = View(Item('about_text', editor=HTMLEditor(), show_label=False),
+    view = View(Item('about_text', editor=HTMLEditor(open_externally=True),
+                show_label=False),
                 resizable=True, title='About',
                 width=500, height=700,
                 buttons=[OKButton])
