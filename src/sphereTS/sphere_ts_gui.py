@@ -19,10 +19,7 @@
 """
 
 # TODO:
-#
 # Compare results to Chu's program
-#
-# Add unittests
 
 import sys
 from pathlib import Path
@@ -377,7 +374,7 @@ class SphereTSGUI(HasTraits):
 
     sphere_material = Str(params['material'], label='Material')
     sphere_diameter = Range(low=0., high=1e3, value=params['a']*2*1000.0, exclude_low=True, label='Diameter [mm]')
-    sphere_density = Range(low=0., high=1e6, value=params['rho1'], exclude_low=True, label='Density [kg/m^3]')
+    sphere_density = Range(low=0., high=1e6, value=params['rho1'], exclude_low=True, label='Density [kg/m³]')
     sphere_c1 = Range(low=0., high=1e4, value=params['c1'], exclude_low=True, label='Longitudal sound speed [m/s]')
     sphere_c2 = Range(low=0., high=1e4, value=params['c2'], exclude_low=True, label='Transverse sound speed [m/s]')
 
@@ -385,9 +382,9 @@ class SphereTSGUI(HasTraits):
     use_another_material = Bool(False, label='Another material')
 
     fluid_c = Range(low=0., high=1e4, value=params['c'], exclude_low=True, label='Sound speed in water [m/s]')
-    fluid_density = Range(low=0., high=1e4, value=params['rho'], exclude_low=True, label='Density of water [kg/m^3]')
+    fluid_density = Range(low=0., high=1e4, value=params['rho'], exclude_low=True, label='Density of water [kg/m³]')
 
-    fluid_temperature = Range(-2.0, 60, 10.0, label='Temperature [degC]')
+    fluid_temperature = Range(-2.0, 60, 10.0, label='Temperature [℃]')
     fluid_salinity = Range(0.0, 60.0, 35.0, label='Salinity [PSU]')
     fluid_depth = Range(0.0, 15000.0, 30.0, label='Depth [m]')
 
